@@ -86,7 +86,7 @@ performed as usual:
 
 .. code-block:: bash
 
-    $ ./manage.py migrate
+    $ python manage.py migrate
 
 Next steps
 ``````````
