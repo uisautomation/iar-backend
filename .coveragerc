@@ -1,0 +1,7 @@
+[run]
+omit=
+	setup.py
+	manage.py
+	*/test/*
+	iarbackend/settings/*
+	iarbackend/wsgi.py
