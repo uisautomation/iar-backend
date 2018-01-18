@@ -16,5 +16,5 @@ VOLUME /usr/src/app
 #
 # *DO NOT DEPLOY THIS TO PRODUCTION*
 ENV DJANGO_SETTINGS_MODULE iarbackend.settings_developer
-ENTRYPOINT ["./manage.py"]
+ENTRYPOINT ["python", "manage.py"]
 CMD ["runserver", "0.0.0.0:8080"]

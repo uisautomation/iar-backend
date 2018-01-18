@@ -71,7 +71,7 @@ Django comes with a development web server which can be run via:
 
 .. code-block:: bash
 
-    $ ./manage.py runserver 0.0.0.0:8080
+    $ python manage.py runserver 0.0.0.0:8080
 
 The server should now be browsable at http://localhost:8080/.
 

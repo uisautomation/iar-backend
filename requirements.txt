@@ -8,7 +8,7 @@ psycopg2
 git+https://git.uis.cam.ac.uk/uis/automation/django-automationcommon.git@master#egg=django-automationcommon
 django-ucamwebauth>=1.4.5
 
-# For an improved ./manage.py shell experience
+# For an improved python manage.py shell experience
 ipython
 
 # So that tests may be run within the container
