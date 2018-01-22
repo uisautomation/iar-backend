@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'automationcommon',
     'ucamwebauth',
 
+    'assets',
 ]
 
 #: Installed middleware
