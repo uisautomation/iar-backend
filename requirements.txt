@@ -8,6 +8,11 @@ psycopg2
 git+https://git.uis.cam.ac.uk/uis/automation/django-automationcommon.git@master#egg=django-automationcommon
 django-ucamwebauth>=1.4.5
 django-multiselectfield
+djangorestframework
+#django rest framework documentation dependencies
+coreapi
+pygments
+markdown
 
 # For an improved python manage.py shell experience
 ipython

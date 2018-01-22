@@ -17,6 +17,9 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 import automationcommon.views
+from rest_framework import routers
+from rest_framework.documentation import include_docs_urls
+from assets.views import AssetViewSet
 
 
 # Django debug toolbar is only installed in developer builds
@@ -26,10 +29,17 @@ try:
 except ImportError:
     HAVE_DDT = False
 
+# Django Rest Framework Routing
+router = routers.DefaultRouter()
+router.register(r'assets', AssetViewSet)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('ucamwebauth.urls')),
     path('status', automationcommon.views.status, name='status'),
+    path('', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('docs/', include_docs_urls(title='Asset Register'))
 ]
 
 # Selectively enable django debug toolbar URLs. Only if the toolbar is
