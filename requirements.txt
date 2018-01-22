@@ -7,6 +7,7 @@ psycopg2
 # in the VCS URL.
 git+https://git.uis.cam.ac.uk/uis/automation/django-automationcommon.git@master#egg=django-automationcommon
 django-ucamwebauth>=1.4.5
+django-multiselectfield
 
 # For an improved python manage.py shell experience
 ipython

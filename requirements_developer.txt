@@ -5,6 +5,3 @@
 
 # Django debugging
 django-debug-toolbar
-
-# Testing
-tox

@@ -16,8 +16,8 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-
 import automationcommon.views
+
 
 # Django debug toolbar is only installed in developer builds
 try:
