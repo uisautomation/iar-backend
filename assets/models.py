@@ -4,14 +4,14 @@ from multiselectfield import MultiSelectField
 
 class Asset(models.Model):
     # General - asset level
-    name = models.CharField(max_length=255)
-    department = models.CharField(max_length=255)
-    purpose = models.CharField(max_length=255)
-    owner = models.CharField(max_length=50)
-    private = models.BooleanField()
+    name = models.CharField(max_length=255, null=True, blank=True)
+    department = models.CharField(max_length=255, null=True, blank=True)
+    purpose = models.CharField(max_length=255, null=True, blank=True)
+    owner = models.CharField(max_length=50, null=True, blank=True)
+    private = models.NullBooleanField(null=True, blank=True)
 
     # Persona Data
-    personal_data = models.BooleanField()
+    personal_data = models.NullBooleanField(null=True, blank=True)
     DATA_SUBJECT_CHOICES = (
         ('students', 'Students, applicants'),
         ('staff', 'Staff, job applicants'),
@@ -21,7 +21,7 @@ class Asset(models.Model):
         ('supplier', 'Suppliers, professional advisers and consultants'),
         ('public', 'Members of public'),
     )
-    data_subject = MultiSelectField(choices=DATA_SUBJECT_CHOICES)
+    data_subject = MultiSelectField(choices=DATA_SUBJECT_CHOICES, null=True, blank=True)
     DATA_CATEGORY_CHOICES = (
         ('personal', 'Personal details'),
         ('education', 'Education details'),
@@ -43,13 +43,13 @@ class Asset(models.Model):
         ('criminal', 'Criminal proceedings, outcomes and sentences'),
         ('others', 'Other (please specify)'),
     )
-    data_category = MultiSelectField(choices=DATA_CATEGORY_CHOICES)
+    data_category = MultiSelectField(choices=DATA_CATEGORY_CHOICES, null=True, blank=True)
         # To be used when there data_category selected is "others"
-    data_category_others = models.CharField(max_length=255)
-    recipients_category = models.CharField(max_length=255)
-    recipients_outside_eea = models.BooleanField()
+    data_category_others = models.CharField(max_length=255, null=True, blank=True)
+    recipients_category = models.CharField(max_length=255, null=True, blank=True)
+    recipients_outside_eea = models.NullBooleanField(null=True, blank=True)
         # To be used when there data_category selected is "true"
-    recipients_outside_eea_who = models.CharField(max_length=255)
+    recipients_outside_eea_who = models.CharField(max_length=255, null=True, blank=True)
     RETENTION_CHOICES = (
         ('<=1', '1 year or less'),
         ('>1,<=5', '>1 to 5 years'),
@@ -58,8 +58,8 @@ class Asset(models.Model):
         ('forever', 'Forever'),
         ('other', 'Other (please specify)'),
     )
-    retention = models.CharField(max_length=255, choices=RETENTION_CHOICES)
-    retention_other = models.CharField(max_length=255)
+    retention = models.CharField(max_length=255, choices=RETENTION_CHOICES, null=True, blank=True)
+    retention_other = models.CharField(max_length=255, null=True, blank=True)
 
     # Risks
     RISK_CHOICES = (
@@ -69,15 +69,15 @@ class Asset(models.Model):
         ('reputational', 'Reputational'),
         ('safety', 'Personal Safety'),
     )
-    risk_type = MultiSelectField(choices=RISK_CHOICES)
+    risk_type = MultiSelectField(choices=RISK_CHOICES, null=True, blank=True)
 
     # Storage
-    storage_location = models.CharField(max_length=255)
+    storage_location = models.CharField(max_length=255, null=True, blank=True)
     STORAGE_FORMAT_CHOICES = (
         ('digital', 'Digital'),
         ('paper', 'Paper'),
     )
-    storage_format = MultiSelectField(choices=STORAGE_FORMAT_CHOICES)
+    storage_format = MultiSelectField(choices=STORAGE_FORMAT_CHOICES, null=True, blank=True)
         # Only if storage_format = 'paper'
     PAPER_STORAGE_SECURITY_CHOICES = (
         ('locked_cabinet', 'Locked filing cabinet'),
@@ -85,7 +85,8 @@ class Asset(models.Model):
         ('locked_room', 'Locked room'),
         ('locked_building', 'Locked building'),
     )
-    paper_storage_security = MultiSelectField(choices=PAPER_STORAGE_SECURITY_CHOICES)
+    paper_storage_security = MultiSelectField(choices=PAPER_STORAGE_SECURITY_CHOICES,
+                                              null=True, blank=True)
         # Only if storage_format = 'digital'
     DIGITAL_STORAGE_SECURITY_CHOICES = (
         ('pwd_controls', 'Password controls'),
@@ -93,4 +94,5 @@ class Asset(models.Model):
         ('backup', 'Backup'),
         ('encryption', 'Encryption'),
     )
-    digital_storage_security = MultiSelectField(choices=DIGITAL_STORAGE_SECURITY_CHOICES)
+    digital_storage_security = MultiSelectField(choices=DIGITAL_STORAGE_SECURITY_CHOICES,
+                                                null=True, blank=True)
