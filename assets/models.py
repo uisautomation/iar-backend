@@ -15,7 +15,6 @@ class AssetManager(models.Manager):
             Q(personal_data__isnull=False),
             Q(data_subject__isnull=False),
             Q(data_category__isnull=False),
-            Q(recipients_category__isnull=False),
             Q(retention__isnull=False),
             Q(retention_other__isnull=False),
             Q(storage_location__isnull=False),
