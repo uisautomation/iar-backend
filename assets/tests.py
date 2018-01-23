@@ -7,6 +7,16 @@ class APIViewsTests(UnitTestCase):
     def setUp(self):
         self.maxDiff = None
 
+    def assertDictListEqual(self, d1, d2, msg=None):
+        """Compares two dictionary with lists (order doesn't matter)"""
+        for k, v in d1.items():
+            if v.__class__ == list:
+                d1[k] = set(v)
+        for k, v in d2.items():
+            if v.__class__ == list:
+                d2[k] = set(v)
+        return self.assertDictEqual(d1, d2, msg)
+
     def test_asset_post_is_complete(self):
         client = APIClient()
         asset_dict = {
@@ -40,20 +50,13 @@ class APIViewsTests(UnitTestCase):
             "retention_other": "",
             "storage_location": "Who knows"
         }
-
         result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 201)
         result_get = client.get(json.loads(result_post.content)['url'], format='json')
         result_get_dict = json.loads(result_get.content)
         del result_get_dict['url']
         asset_dict['is_complete'] = True
-        for k, v in asset_dict.items():
-            if v.__class__ == list:
-                asset_dict[k] = set(v)
-        for k, v in result_get_dict.items():
-            if v.__class__ == list:
-                result_get_dict[k] = set(v)
-        self.assertDictEqual(asset_dict, result_get_dict)
-
+        self.assertDictListEqual(asset_dict, result_get_dict)
 
     def test_asset_post_is_not_complete(self):
         client = APIClient()
@@ -89,18 +92,51 @@ class APIViewsTests(UnitTestCase):
             "retention_other": "",
             "storage_location": "Who knows"
         }
-
         result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 201)
         result_get = client.get(json.loads(result_post.content)['url'], format='json')
         result_get_dict = json.loads(result_get.content)
         del result_get_dict['url']
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
+        self.assertDictListEqual(asset_dict, result_get_dict)
 
-        for k, v in asset_dict.items():
-            if v.__class__ == list:
-                asset_dict[k] = set(v)
-        for k, v in result_get_dict.items():
-            if v.__class__ == list:
-                result_get_dict[k] = set(v)
-        self.assertDictEqual(asset_dict, result_get_dict)
+    def test_asset_post_missing_paper_storage_security_and_name(self):
+        client = APIClient()
+        # Missing paper_storage_security and name
+        asset_dict = {
+            "data_subject": [
+                "students"
+            ],
+            "data_category": [
+                "research"
+            ],
+            "risk_type": [
+                "operational", "reputational"
+            ],
+            "storage_format": [
+                "digital", "paper"
+            ],
+            "digital_storage_security": [
+                "acl"
+            ],
+            "department": "department test",
+            "purpose": "don't know",
+            "owner": "amc203",
+            "private": True,
+            "personal_data": False,
+            "recipients_category": "no idea",
+            "recipients_outside_eea": "",
+            "retention": "<=1",
+            "retention_other": "",
+            "storage_location": "Who knows"
+        }
+        result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        result_get_dict = json.loads(result_get.content)
+        del result_get_dict['url']
+        asset_dict['is_complete'] = False
+        asset_dict['name'] = None
+        asset_dict['paper_storage_security'] = []
+        self.assertDictListEqual(asset_dict, result_get_dict)
