@@ -53,7 +53,6 @@ class Asset(models.Model):
     )
     data_subject = MultiSelectField(choices=DATA_SUBJECT_CHOICES, null=True, blank=True)
     DATA_CATEGORY_CHOICES = (
-        ('personal', 'Personal details'),
         ('education', 'Education details'),
         ('employment', 'Employment details'),
         ('financial', 'Financial details'),
