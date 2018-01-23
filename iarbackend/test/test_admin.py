@@ -3,12 +3,12 @@ Test that the admin pages are available and protected.
 
 """
 from urllib.parse import urljoin
+from automationcommon.tests.utils import UnitTestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.test import TestCase
 
 
-class AdminTests(TestCase):
+class AdminTests(UnitTestCase):
     def setUp(self):
         # create superuser
         self.superuser = User.objects.create_superuser(
