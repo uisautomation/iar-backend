@@ -34,7 +34,6 @@ class APIViewsTests(UnitTestCase):
             "owner": "amc203",
             "private": True,
             "personal_data": False,
-            "data_category_others": "",
             "recipients_category": "no idea",
             "recipients_outside_eea": "",
             "retention": "<=1",
@@ -65,7 +64,7 @@ class APIViewsTests(UnitTestCase):
                 "students"
             ],
             "data_category": [
-                "others", "research"
+                "research"
             ],
             "risk_type": [
                 "operational", "reputational"

@@ -15,8 +15,6 @@ class AssetManager(models.Manager):
             Q(personal_data__isnull=False),
             Q(data_subject__isnull=False),
             Q(data_category__isnull=False),
-            Q(Q(data_category__contains="others", data_category_others__isnull=False) |
-              ~Q(data_category__contains="others")),
             Q(recipients_category__isnull=False),
             Q(retention__isnull=False),
             Q(retention_other__isnull=False),
@@ -70,11 +68,8 @@ class Asset(models.Model):
         ('genetic', 'Genetic information'),
         ('biometric', 'Biometric information'),
         ('criminal', 'Criminal proceedings, outcomes and sentences'),
-        ('others', 'Other (please specify)'),
     )
     data_category = MultiSelectField(choices=DATA_CATEGORY_CHOICES, null=True, blank=True)
-        # To be used when there data_category selected is "others"
-    data_category_others = models.CharField(max_length=255, null=True, blank=True)
     recipients_category = models.CharField(max_length=255, null=True, blank=True)
     recipients_outside_eea = models.CharField(max_length=255, null=True, blank=True)
     RETENTION_CHOICES = (
