@@ -4,23 +4,23 @@ from rest_framework.test import APIClient
 
 
 class APIViewsTests(UnitTestCase):
+    def setUp(self):
+        self.maxDiff = None
 
-    def test_asset_post(self):
+    def test_asset_post_is_complete(self):
         client = APIClient()
-        asset_json = {
+        asset_dict = {
             "data_subject": [
                 "students"
             ],
             "data_category": [
-                "personal",
-                "research"
+                "personal", "research"
             ],
             "risk_type": [
-                "operational",
-                "reputational"
+                "operational", "reputational"
             ],
             "storage_format": [
-                "digital"
+                "digital", "paper"
             ],
             "paper_storage_security": [
                 "locked_cabinet"
@@ -43,8 +43,15 @@ class APIViewsTests(UnitTestCase):
             "storage_location": "Who knows"
         }
 
-        result_post = client.post('/assets/', asset_json, format='json')
+        result_post = client.post('/assets/', asset_dict, format='json')
         result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_json = json.loads(result_get.content)
-        del result_get_json['url']
-        self.assertEqual(asset_json, result_get_json)
+        result_get_dict = json.loads(result_get.content)
+        del result_get_dict['url']
+        asset_dict['is_complete'] = True
+        for k, v in asset_dict.items():
+            if v.__class__ == list:
+                asset_dict[k] = set(v)
+        for k, v in result_get_dict.items():
+            if v.__class__ == list:
+                result_get_dict[k] = set(v)
+        self.assertDictEqual(asset_dict, result_get_dict)

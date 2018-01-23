@@ -1,8 +1,42 @@
 from django.db import models
+from django.db.models import Case, When, Q, BooleanField, Value
 from multiselectfield import MultiSelectField
 
 
+class AssetManager(models.Manager):
+    def get_queryset(self):
+        """A QuerySet to add an annotation to specify if an Asset is complete or not"""
+        return super().get_queryset().annotate(is_complete=Case(When(Q(
+            Q(name__isnull=False),
+            Q(department__isnull=False),
+            Q(purpose__isnull=False),
+            Q(owner__isnull=False),
+            Q(private__isnull=False),
+            Q(personal_data__isnull=False),
+            Q(data_subject__isnull=False),
+            Q(data_category__isnull=False),
+            Q(Q(data_category__contains="others", data_category_others__isnull=False) |
+              ~Q(data_category__contains="others")),
+            Q(recipients_category__isnull=False),
+            Q(recipients_outside_eea__isnull=False),
+            Q(Q(recipients_outside_eea=True, recipients_outside_eea_who__isnull=False) |
+              Q(recipients_outside_eea=False)),
+            Q(retention__isnull=False),
+            Q(retention_other__isnull=False),
+            Q(risk_type__isnull=False),
+            Q(storage_location__isnull=False),
+            Q(storage_format__isnull=False),
+            Q(Q(storage_format__contains="paper", paper_storage_security__isnull=False) |
+              Q(storage_format__contains="digital", digital_storage_security__isnull=False))),
+            then=Value(True)), default=Value(False), output_field=BooleanField()))
+
+
 class Asset(models.Model):
+    """"Model to store Assets for the Information Asset Register"""
+
+    # a custom manager to include the annotation is_complete
+    objects = AssetManager()
+
     # General - asset level
     name = models.CharField(max_length=255, null=True, blank=True)
     department = models.CharField(max_length=255, null=True, blank=True)

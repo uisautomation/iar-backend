@@ -15,6 +15,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         choices=Asset.PAPER_STORAGE_SECURITY_CHOICES, allow_null=True, allow_blank=True)
     digital_storage_security = fields.MultipleChoiceField(
         choices=Asset.DIGITAL_STORAGE_SECURITY_CHOICES, allow_null=True, allow_blank=True)
+    is_complete = serializers.BooleanField(read_only=True)
     class Meta:
         model = Asset
         fields = '__all__'
