@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 
     'automationcommon',
     'ucamwebauth',
+    'ucamlookup',
     'multiselectfield',
     'rest_framework',
 

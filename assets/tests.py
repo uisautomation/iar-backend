@@ -1,5 +1,5 @@
+import json
 from automationcommon.tests.utils import UnitTestCase
-from django.test import TestCase
 from rest_framework.test import APIClient
 
 
@@ -44,5 +44,7 @@ class APIViewsTests(UnitTestCase):
         }
 
         result_post = client.post('/assets/', asset_json, format='json')
-        result_get = client.get(result_post['url'], format='json')
-        self.assertEqual(asset_json, result_get)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        result_get_json = json.loads(result_get.content)
+        del result_get_json['url']
+        self.assertEqual(asset_json, result_get_json)
