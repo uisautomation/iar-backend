@@ -23,7 +23,6 @@ class AssetManager(models.Manager):
               Q(recipients_outside_eea=False)),
             Q(retention__isnull=False),
             Q(retention_other__isnull=False),
-            Q(risk_type__isnull=False),
             Q(storage_location__isnull=False),
             Q(storage_format__isnull=False),
             Q(Q(storage_format__contains="paper", paper_storage_security__isnull=False) |
