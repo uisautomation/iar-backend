@@ -29,6 +29,8 @@ class AdminTests(UnitTestCase):
 
     def test_authenticated(self):
         """Authenticated log in to admin as superuser succeeds."""
-        self.client.force_login(self.superuser)
+        with mock.patch('ucamlookup.utils.PersonMethods') as mocked_pm:
+            mocked_pm.return_value.getPerson.return_value = None
+            self.client.force_login(self.superuser)
         r = self.client.get(reverse('admin:index'))
         self.assertEqual(r.status_code, 200)
