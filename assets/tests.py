@@ -14,7 +14,7 @@ class APIViewsTests(UnitTestCase):
                 "students"
             ],
             "data_category": [
-                "personal", "research"
+                "research"
             ],
             "risk_type": [
                 "operational", "reputational"
@@ -72,13 +72,12 @@ class APIViewsTests(UnitTestCase):
             "storage_format": [
                 "digital", "paper"
             ],
-            "paper_storage_security": [
-                "locked_cabinet"
-            ],
             "digital_storage_security": [
                 "acl"
             ],
-            "name": "asset1",
+            "paper_storage_security": [
+                "locked_cabinet"
+            ],
             "department": "department test",
             "purpose": "don't know",
             "owner": "amc203",
@@ -96,7 +95,8 @@ class APIViewsTests(UnitTestCase):
         result_get_dict = json.loads(result_get.content)
         del result_get_dict['url']
         asset_dict['is_complete'] = False
-        asset_dict['data_category_others'] = None
+        asset_dict['name'] = None
+
         for k, v in asset_dict.items():
             if v.__class__ == list:
                 asset_dict[k] = set(v)
