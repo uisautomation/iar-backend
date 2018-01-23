@@ -36,8 +36,7 @@ class APIViewsTests(UnitTestCase):
             "personal_data": False,
             "data_category_others": "",
             "recipients_category": "no idea",
-            "recipients_outside_eea": False,
-            "recipients_outside_eea_who": "",
+            "recipients_outside_eea": "",
             "retention": "<=1",
             "retention_other": "",
             "storage_location": "Who knows"
@@ -87,8 +86,7 @@ class APIViewsTests(UnitTestCase):
             "private": True,
             "personal_data": False,
             "recipients_category": "no idea",
-            "recipients_outside_eea": False,
-            "recipients_outside_eea_who": "",
+            "recipients_outside_eea": "",
             "retention": "<=1",
             "retention_other": "",
             "storage_location": "Who knows"

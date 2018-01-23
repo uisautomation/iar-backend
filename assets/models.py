@@ -18,9 +18,6 @@ class AssetManager(models.Manager):
             Q(Q(data_category__contains="others", data_category_others__isnull=False) |
               ~Q(data_category__contains="others")),
             Q(recipients_category__isnull=False),
-            Q(recipients_outside_eea__isnull=False),
-            Q(Q(recipients_outside_eea=True, recipients_outside_eea_who__isnull=False) |
-              Q(recipients_outside_eea=False)),
             Q(retention__isnull=False),
             Q(retention_other__isnull=False),
             Q(storage_location__isnull=False),
@@ -80,9 +77,7 @@ class Asset(models.Model):
         # To be used when there data_category selected is "others"
     data_category_others = models.CharField(max_length=255, null=True, blank=True)
     recipients_category = models.CharField(max_length=255, null=True, blank=True)
-    recipients_outside_eea = models.NullBooleanField(null=True, blank=True)
-        # To be used when there data_category selected is "true"
-    recipients_outside_eea_who = models.CharField(max_length=255, null=True, blank=True)
+    recipients_outside_eea = models.CharField(max_length=255, null=True, blank=True)
     RETENTION_CHOICES = (
         ('<=1', '1 year or less'),
         ('>1,<=5', '>1 to 5 years'),
