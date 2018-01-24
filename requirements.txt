@@ -13,6 +13,7 @@ djangorestframework
 coreapi
 pygments
 markdown
+django-cors-headers
 
 # For an improved python manage.py shell experience
 ipython
