@@ -11,6 +11,8 @@ class AssetManager(models.Manager):
             Q(name__isnull=False),
             Q(department__isnull=False),
             Q(purpose__isnull=False),
+            Q(Q(research=False) |
+              Q(research=True, owner__isnull=False)),
             Q(owner__isnull=False),
             Q(private__isnull=False),
             Q(personal_data__isnull=False),
@@ -38,6 +40,8 @@ class Asset(models.Model):
     purpose = models.CharField(max_length=255, null=True, blank=True)
     owner = models.CharField(max_length=50, null=True, blank=True)
     private = models.NullBooleanField(null=True, blank=True)
+    # Tracks if the owner of the asset is the head of department or a principal investigator
+    research = models.NullBooleanField(null=True, blank=True)
 
     # Persona Data
     personal_data = models.NullBooleanField(null=True, blank=True)

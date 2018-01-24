@@ -41,6 +41,7 @@ class APIViewsTests(UnitTestCase):
             "name": "asset1",
             "department": "department test",
             "purpose": "don't know",
+            "research": True,
             "owner": "amc203",
             "private": True,
             "personal_data": False,
@@ -83,7 +84,7 @@ class APIViewsTests(UnitTestCase):
             ],
             "department": "department test",
             "purpose": "don't know",
-            "owner": "amc203",
+            "research": False,
             "private": True,
             "personal_data": False,
             "recipients_category": "no idea",
@@ -99,6 +100,7 @@ class APIViewsTests(UnitTestCase):
         del result_get_dict['url']
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
+        asset_dict['owner'] = None
         self.assertDictListEqual(asset_dict, result_get_dict)
 
     def test_asset_post_missing_paper_storage_security_and_name(self):
@@ -123,6 +125,7 @@ class APIViewsTests(UnitTestCase):
             "department": "department test",
             "purpose": "don't know",
             "owner": "amc203",
+            "research": True,
             "private": True,
             "personal_data": False,
             "recipients_category": "no idea",
