@@ -1,3 +1,5 @@
+import uuid
+from base64 import urlsafe_b64encode
 from django.db import models
 from django.db.models import Case, When, Q, BooleanField, Value
 from multiselectfield import MultiSelectField
@@ -26,6 +28,8 @@ class AssetManager(models.Manager):
 
 class Asset(models.Model):
     """"Model to store Assets for the Information Asset Register"""
+    id = models.CharField(primary_key=True, editable=False, max_length=24,
+                          default=urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8').strip("="))
 
     # a custom manager to include the annotation is_complete
     objects = AssetManager()
