@@ -25,8 +25,10 @@ class AssetManager(models.Manager):
             Q(retention_other__isnull=False),
             Q(storage_location__isnull=False),
             Q(storage_format__isnull=False),
-            Q(Q(storage_format__contains="paper", paper_storage_security__isnull=False) |
-              Q(storage_format__contains="digital", digital_storage_security__isnull=False))),
+            Q(~Q(storage_format__contains="paper") |
+              Q(Q(storage_format__contains="paper"), ~Q(paper_storage_security=[]))),
+            Q(~Q(storage_format__contains="digital") |
+              Q(Q(storage_format__contains="digital"), ~Q(digital_storage_security__isnull=[])))),
             then=Value(True)), default=Value(False), output_field=BooleanField()))
 
 
