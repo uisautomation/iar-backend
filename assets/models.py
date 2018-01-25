@@ -5,6 +5,9 @@ from multiselectfield import MultiSelectField
 
 
 class AssetManager(models.Manager):
+    """Custom :py:class:`models.Manager` sub class which adds an :py:attr:`is_complete`
+    annotation to the :py:class:`~.Asset` instances in the query set. The :py:attr:`is_complete`
+    annotation reflects whether the asset record is "complete" as defined in the requirements."""
     def get_queryset(self):
         """A QuerySet to add an annotation to specify if an Asset is complete or not"""
         return super().get_queryset().annotate(is_complete=Case(When(Q(
