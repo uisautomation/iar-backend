@@ -108,7 +108,7 @@ class Asset(models.Model):
         ('paper', 'Paper'),
     )
     storage_format = MultiSelectField(choices=STORAGE_FORMAT_CHOICES, null=True, blank=True)
-        # Only if storage_format = 'paper'
+    # Storage # Only if storage_format = 'paper'
     PAPER_STORAGE_SECURITY_CHOICES = (
         ('locked_cabinet', 'Locked filing cabinet'),
         ('safe', 'Safe'),
@@ -117,7 +117,7 @@ class Asset(models.Model):
     )
     paper_storage_security = MultiSelectField(choices=PAPER_STORAGE_SECURITY_CHOICES,
                                               null=True, blank=True)
-        # Only if storage_format = 'digital'
+    # Storage # Only if storage_format = 'digital'
     DIGITAL_STORAGE_SECURITY_CHOICES = (
         ('pwd_controls', 'Password controls'),
         ('acl', 'Access control lists'),

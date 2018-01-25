@@ -11,11 +11,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                            allow_blank=True, required=False)
     storage_format = fields.MultipleChoiceField(choices=Asset.STORAGE_FORMAT_CHOICES,
                                                 allow_null=True, allow_blank=True, required=False)
-    paper_storage_security = fields.MultipleChoiceField(required=False,
-        choices=Asset.PAPER_STORAGE_SECURITY_CHOICES, allow_null=True, allow_blank=True)
-    digital_storage_security = fields.MultipleChoiceField(required=False,
-        choices=Asset.DIGITAL_STORAGE_SECURITY_CHOICES, allow_null=True, allow_blank=True)
+    paper_storage_security = fields.MultipleChoiceField(
+        required=False, choices=Asset.PAPER_STORAGE_SECURITY_CHOICES, allow_null=True,
+        allow_blank=True)
+    digital_storage_security = fields.MultipleChoiceField(
+        required=False, choices=Asset.DIGITAL_STORAGE_SECURITY_CHOICES, allow_null=True,
+        allow_blank=True)
     is_complete = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = Asset
         fields = '__all__'
