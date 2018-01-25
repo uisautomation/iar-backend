@@ -1,3 +1,4 @@
+import copy
 import json
 from automationcommon.tests.utils import UnitTestCase
 from rest_framework.test import APIClient
@@ -7,8 +8,10 @@ class APIViewsTests(UnitTestCase):
     def setUp(self):
         self.maxDiff = None
 
-    def assertDictListEqual(self, d1, d2, msg=None):
+    def assertDictListEqual(self, odict1, odict2, msg=None):
         """Compares two dictionary with lists (order doesn't matter)"""
+        d1 = copy.copy(odict1)
+        d2 = copy.copy(odict2)
         for k, v in d1.items():
             if v.__class__ == list:
                 d1[k] = set(v)
