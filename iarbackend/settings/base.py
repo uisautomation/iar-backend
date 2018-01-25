@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'ucamlookup',
     'multiselectfield',
     'rest_framework',
+    'drf_yasg',
 
     'assets',
 ]
