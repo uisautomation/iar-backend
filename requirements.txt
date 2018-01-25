@@ -14,6 +14,7 @@ coreapi
 pygments
 markdown
 django-cors-headers
+drf-yasg[validation]
 
 # For an improved python manage.py shell experience
 ipython
