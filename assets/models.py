@@ -123,3 +123,7 @@ class Asset(models.Model):
     )
     digital_storage_security = MultiSelectField(choices=DIGITAL_STORAGE_SECURITY_CHOICES,
                                                 null=True, blank=True)
+
+    # Asset logs
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
