@@ -20,15 +20,14 @@ class APIViewsTests(UnitTestCase):
         """
         d1 = copy.copy(odict1)
         d2 = copy.copy(odict2)
+        for k in ignore_keys:
+            del d1[k]
+            del d2[k]
         for k, v in d1.items():
-            if k in ignore_keys:
-                del d1[k]
-            elif v.__class__ == list:
+            if v.__class__ == list:
                 d1[k] = set(v)
         for k, v in d2.items():
-            if k in ignore_keys:
-                del d2[k]
-            elif v.__class__ == list:
+            if v.__class__ == list:
                 d2[k] = set(v)
         return self.assertDictEqual(d1, d2, msg)
 
