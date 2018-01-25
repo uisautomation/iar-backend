@@ -78,15 +78,18 @@ directory of the application and add contents similar to the following:
 .. literalinclude:: ../setupenv.example.sh
     :language: bash
 
-Perform initial migration
-`````````````````````````
+Start the development server
+````````````````````````````
 
-Before running for the first time, an initial database migration must be
-performed as usual:
+There is a `docker-compose <https://docs.docker.com/compose/>`_ file at the
+top-level of the webapp repository which contains configuration allowing the
+application container to be launched in a development mode.
 
 .. code-block:: bash
 
-    $ python manage.py migrate
+    $ docker-compose up devserver
+
+You can browse the API docs at http://localhost:8080/
 
 Next steps
 ``````````

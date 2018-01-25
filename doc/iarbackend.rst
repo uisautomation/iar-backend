@@ -1,13 +1,13 @@
-The |project| Project
-======================================
+The iar-backend Project
+=======================
 
-The |project| ``iarbackend`` project contains top-level configuration and URL routes for
+The ``iarbackend`` project contains top-level configuration and URL routes for
 the entire web application.
 
 Settings
 --------
 
-The |project| ``iarbackend`` project ships a number of settings files.
+The ``iarbackend`` project ships a number of settings files.
 
 .. _settings:
 
