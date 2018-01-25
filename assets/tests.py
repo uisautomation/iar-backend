@@ -8,15 +8,27 @@ class APIViewsTests(UnitTestCase):
     def setUp(self):
         self.maxDiff = None
 
-    def assertDictListEqual(self, odict1, odict2, msg=None):
-        """Compares two dictionary with lists (order doesn't matter)"""
+    def assertDictListEqual(self, odict1, odict2, ignore_keys=[], msg=None):
+        """
+        :param odict1: dictionary 1 that you want to compare to dictionary 2
+        :param odict2: dictionary 2 that you want to compare to dictionary 1
+        :param ignore_keys: list of the dictionary keys you don't want to compare
+        :type odict1: dict
+        :type odict2: dict
+        :type ignore_keys: list
+        Compares two dictionary with lists (ignoring the order of the lists).
+        """
         d1 = copy.copy(odict1)
         d2 = copy.copy(odict2)
         for k, v in d1.items():
-            if v.__class__ == list:
+            if k in ignore_keys:
+                del d1[k]
+            elif v.__class__ == list:
                 d1[k] = set(v)
         for k, v in d2.items():
-            if v.__class__ == list:
+            if k in ignore_keys:
+                del d2[k]
+            elif v.__class__ == list:
                 d2[k] = set(v)
         return self.assertDictEqual(d1, d2, msg)
 
@@ -60,7 +72,7 @@ class APIViewsTests(UnitTestCase):
         result_get_dict = json.loads(result_get.content)
         del result_get_dict['url']
         asset_dict['is_complete'] = True
-        self.assertDictListEqual(asset_dict, result_get_dict)
+        self.assertDictListEqual(asset_dict, result_get_dict, ignore_keys=['created_at', 'updated_at'])
 
     def test_asset_post_is_not_complete(self):
         client = APIClient()
@@ -104,7 +116,7 @@ class APIViewsTests(UnitTestCase):
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
         asset_dict['owner'] = None
-        self.assertDictListEqual(asset_dict, result_get_dict)
+        self.assertDictListEqual(asset_dict, result_get_dict, ignore_keys=['created_at', 'updated_at'])
 
     def test_asset_post_missing_paper_storage_security_and_name(self):
         client = APIClient()
@@ -145,4 +157,4 @@ class APIViewsTests(UnitTestCase):
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
         asset_dict['paper_storage_security'] = []
-        self.assertDictListEqual(asset_dict, result_get_dict)
+        self.assertDictListEqual(asset_dict, result_get_dict, ignore_keys=['created_at', 'updated_at'])
