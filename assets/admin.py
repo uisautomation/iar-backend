@@ -3,7 +3,7 @@ from assets.models import Asset
 
 
 class AssetAdmin(admin.ModelAdmin):
-    fields = ('name', 'department', 'owner')
+    list_fields = ('name', 'department', 'owner')
 
 
 admin.site.register(Asset, AssetAdmin)
