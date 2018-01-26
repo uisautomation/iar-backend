@@ -2,7 +2,7 @@ import copy
 import json
 from unittest import mock
 
-from automationcommon.tests.utils import UnitTestCase
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
@@ -42,7 +42,7 @@ COMPLETE_ASSET = {
 }
 
 
-class APIViewsTests(UnitTestCase):
+class APIViewsTests(TestCase):
     required_scopes = REQUIRED_SCOPES
 
     def setUp(self):
@@ -146,7 +146,7 @@ class APIViewsTests(UnitTestCase):
             'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
 
 
-class SwaggerAPITest(UnitTestCase):
+class SwaggerAPITest(TestCase):
     def test_security_definitions(self):
         """API spec should define an oauth2 security requirement."""
         spec = self.get_spec()
