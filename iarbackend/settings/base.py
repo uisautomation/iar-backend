@@ -24,13 +24,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'corsheaders',
     'automationcommon',
     'ucamwebauth',
+    'ucamlookup',
+    'multiselectfield',
+    'rest_framework',
+    'drf_yasg',
 
+    'assets',
 ]
 
 #: Installed middleware
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -147,3 +154,13 @@ UCAMWEBAUTH_LOGOUT_REDIRECT = 'https://raven.cam.ac.uk/auth/logout.html'
 
 #: Allow members who are not current members to log in?
 UCAMWEBAUTH_NOT_CURRENT = False
+
+
+#: By default, whitelist all origins for CORS
+CORS_ORIGIN_ALLOW_ALL = True
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    'PAGE_SIZE': 25
+}

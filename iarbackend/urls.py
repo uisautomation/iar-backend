@@ -16,8 +16,8 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-
 import automationcommon.views
+from rest_framework.documentation import include_docs_urls
 
 # Django debug toolbar is only installed in developer builds
 try:
@@ -30,6 +30,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('ucamwebauth.urls')),
     path('status', automationcommon.views.status, name='status'),
+    path('', include('assets.urls')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('docs/', include_docs_urls(title='Asset Register')),
 ]
 
 # Selectively enable django debug toolbar URLs. Only if the toolbar is
