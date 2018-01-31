@@ -14,7 +14,7 @@ from .base import *  # noqa: F401, F403
 
 #: The default test runner is changed to one which captures stdout and stderr
 #: when running tests.
-TEST_RUNNER = 'iarbackend.test.runner.BufferedDiscoverRunner'
+TEST_RUNNER = 'iarbackend.tests.runner.BufferedDiscoverRunner'
 
 #: Static files are collected into a directory determined by the tox
 #: configuration. See the tox.ini file.
