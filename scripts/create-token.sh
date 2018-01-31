@@ -6,4 +6,4 @@
 set -xe
 docker-compose exec hydra hydra token user \
     --id testclient --secret secret \
-    --scopes lookup:anonymous
+    --scopes lookup:anonymous,assetregister
