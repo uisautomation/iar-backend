@@ -22,7 +22,8 @@ class AssetManager(models.Manager):
             Q(data_subject__isnull=False),
             Q(data_category__isnull=False),
             Q(retention__isnull=False),
-            Q(retention_other__isnull=False),
+            Q(~Q(retention='other') |
+              Q(retention='other', retention_other__isnull=False)),
             Q(storage_location__isnull=False),
             Q(storage_format__isnull=False),
             Q(~Q(storage_format__contains="paper") |
