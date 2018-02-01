@@ -43,3 +43,15 @@ MIDDLEWARE = MIDDLEWARE + [  # noqa: F405
 ]
 
 STATIC_URL = '/static/'
+
+# These OAuth2 settings are correct only if the development server has been launched via
+# docker-compose.
+ASSETS_OAUTH2_TOKEN_URL = 'http://hydra:4444/oauth2/token'
+ASSETS_OAUTH2_INTROSPECT_URL = 'http://hydra:4444/oauth2/introspect'
+ASSETS_OAUTH2_CLIENT_ID = 'hydraroot'
+ASSETS_OAUTH2_CLIENT_SECRET = 'secret'
+ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+
+# Set the OAuth2 authorisation endpoint
+SWAGGER_SETTINGS['SECURITY_DEFINITIONS']['oauth2']['authorizationUrl'] = (  # noqa: F405
+    'http://localhost:4444/oauth2/auth')

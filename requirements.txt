@@ -16,6 +16,10 @@ markdown
 django-cors-headers
 drf-yasg[validation]
 
+# For managing OAuth2 tokens
+oauthlib
+requests-oauthlib
+
 # For an improved python manage.py shell experience
 ipython
 

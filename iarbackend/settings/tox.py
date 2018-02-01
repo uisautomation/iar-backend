@@ -14,7 +14,7 @@ from .base import *  # noqa: F401, F403
 
 #: The default test runner is changed to one which captures stdout and stderr
 #: when running tests.
-TEST_RUNNER = 'iarbackend.test.runner.BufferedDiscoverRunner'
+TEST_RUNNER = 'iarbackend.tests.runner.BufferedDiscoverRunner'
 
 #: Static files are collected into a directory determined by the tox
 #: configuration. See the tox.ini file.
@@ -28,3 +28,10 @@ for v in _db_copy.values():
         v['PASSWORD'] = '<redacted>'
 print('Databases:')
 print(json.dumps(_db_copy, indent=2))
+
+# Make these fake endpoints
+ASSETS_OAUTH2_TOKEN_URL = 'http://oauth2.example.com/oauth2/token'
+ASSETS_OAUTH2_INTROSPECT_URL = 'http://oauth2.example.com/oauth2/introspect'
+ASSETS_OAUTH2_CLIENT_ID = 'api-client-id'
+ASSETS_OAUTH2_CLIENT_SECRET = 'api-client-secret'
+ASSETS_OAUTH2_INTROSPECT_SCOPES = ['introspect']

@@ -12,6 +12,7 @@ services:
     depends_on:
       - "db"
       - "debugsmtp"
+      - "hydra"
     # For devserver, mount the local directory inside the container as a volume
     # to allow local changes to be reflected without having to re-build the
     # container.
@@ -47,6 +48,42 @@ services:
     image: postgres
     env_file:
       - compose/base.env
+  debugsmtp:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+  consent:
+    build:
+      context: compose/consent
+    entrypoint: ["flask"]
+    command: ["run", "-h", "0.0.0.0", "-p", "8090"]
+    volumes:
+      - "./compose/consent/:/usr/src/app/:ro"
+    working_dir: "/usr/src/app"
+    environment:
+      - FLASK_DEBUG=1
+      - FLASK_APP=app.py
+    env_file:
+      - compose/hydra.env
+    ports:
+      - "8090:8090"
+  hydra:
+    image: oryd/hydra:v0.11.1-alpine
+    entrypoint: ["/tmp/start-hydra.sh"]
+    ports:
+      - "4444:4444"
+      - "4445:4445"
+    env_file:
+      - compose/hydra.env
+    depends_on:
+      - hydradb
+      - consent
+    volumes:
+      - "./compose/start-hydra.sh:/tmp/start-hydra.sh/:ro"
+  hydradb:
+    image: postgres
+    env_file:
+      - compose/hydra.env
   debugsmtp:
     image: mailhog/mailhog
     ports:
