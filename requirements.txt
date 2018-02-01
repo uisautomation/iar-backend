@@ -15,6 +15,7 @@ pygments
 markdown
 django-cors-headers
 drf-yasg[validation]
+django-filter
 
 # For managing OAuth2 tokens
 oauthlib

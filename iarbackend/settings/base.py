@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'multiselectfield',
     'rest_framework',
     'drf_yasg',
+    'django_filters',
 
     'assets',
 ]
@@ -163,7 +164,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
-    'PAGE_SIZE': 25
+    'PAGE_SIZE': 25,
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
 
 
