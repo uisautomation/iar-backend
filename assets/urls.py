@@ -2,7 +2,7 @@ from django.urls import path, include, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import routers, permissions
-from assets.views import AssetViewSet
+from assets.views import AssetViewSet, AssetAdvanceList
 
 # Django Rest Framework Routing
 router = routers.DefaultRouter()
@@ -24,6 +24,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('assets/advanced-list/', AssetAdvanceList.as_view()),
     path('openapi/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-openapi-ui'),
     re_path(r'^swagger(?P<format>.json|.yaml)$', schema_view.without_ui(cache_timeout=None),
             name='schema-json'),

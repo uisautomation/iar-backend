@@ -7,7 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, generics
 from rest_framework.filters import SearchFilter, OrderingFilter
-
+from rest_framework.pagination import CursorPagination
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import HasScopesPermission
@@ -47,14 +47,6 @@ class AssetViewSet(viewsets.ModelViewSet):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
     pagination_class = AssetCursorPagination
-    ordering = ('-created_at',)
-    filter_backends = (OrderingFilter, )
-    ordering_fields = \
-        ('id', 'name', 'department', 'purpose', 'owner', 'private', 'research',
-         'personal_data', 'data_subject', 'data_category', 'recipients_category',
-         'recipients_outside_eea', 'retention', 'risk_type', 'storage_location',
-         'storage_format', 'paper_storage_security', 'digital_storage_security',
-         'created_at', 'updated_at')
 
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES
@@ -65,10 +57,11 @@ class AssetViewSet(viewsets.ModelViewSet):
     # triple.
     permission_classes = (HasScopesPermission,)
 
+
 @method_decorator(name='list', decorator=SCHEMA_DECORATOR)
-class AssetSearchViewSet(generics.ListAPIView):
+class AssetAdvanceList(generics.ListAPIView):
     """
-    API endpoint that allows assets to be searched.
+    API endpoint that allows assets to be searched, filtered, and ordered by any field.
 
     """
     queryset = Asset.objects.all()
@@ -84,3 +77,9 @@ class AssetSearchViewSet(generics.ListAPIView):
 
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES
+
+    # TODO: Currently there are extremely permissive permissions with any valid token (even ones
+    # with no associated user) being allowed to view, create and edit any asset. As we move
+    # forward, we need to decide on a better permissions model based on the (client, scope, user)
+    # triple.
+    permission_classes = (HasScopesPermission,)
