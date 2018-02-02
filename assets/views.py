@@ -63,6 +63,18 @@ class AssetAdvanceList(generics.ListAPIView):
     """
     API endpoint that allows assets to be searched, filtered, and ordered by any field.
 
+    To order by a specific field you need to include in your GET request a parameter called
+    ordering with the name of the field you want to order by. You can also order in reverse
+    by adding the character "-" at the beginning of the name of the field.
+
+    You can also use the parameter search in your request with the text that you want to search.
+    This text will be searched on all fields and will return all possible results
+
+    You can also filter by a specific field. For example if you only want to return those assets
+    with name "foobar" you can add to your GET request a parameter called name (name of the field)
+    and the value you want to filter by. Example ?name=foobar (this will return all assets
+    that have as name "foobar").
+
     """
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
