@@ -23,8 +23,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('assets/advanced-list/', AssetAdvanceList.as_view(), name="assets-advanced-list"),
     path('', include(router.urls)),
-    path('assets/advanced-list/', AssetAdvanceList.as_view()),
     path('openapi/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-openapi-ui'),
     re_path(r'^swagger(?P<format>.json|.yaml)$', schema_view.without_ui(cache_timeout=None),
             name='schema-json'),

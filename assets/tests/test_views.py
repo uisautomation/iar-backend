@@ -104,6 +104,82 @@ class APIViewsTests(TestCase):
         self.assert_dict_list_equal(asset_dict, result_get_dict,
                                     ignore_keys=('created_at', 'updated_at', 'url'))
 
+    def test_search_filter(self):
+        # Test that the search fields finds an asset called asset2 out of some assets
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        asset_dict2 = copy.copy(COMPLETE_ASSET)
+        asset_dict3 = copy.copy(COMPLETE_ASSET)
+        asset_dict1['name'] = "asset1"
+        asset_dict2['name'] = "asset2"
+        asset_dict3['name'] = "asset3"
+        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
+        result_post = client.post('/assets/', asset_dict2, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
+        result_get = client.get(reverse('assets-advanced-list'), data={'search': "asset2"},
+                                format='json')
+        result_get_dict = json.loads(result_get.content)
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict["results"]), 1)
+        self.assert_dict_list_equal(asset_dict2, result_get_dict["results"][0],
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete'))
+
+    def test_order_filter(self):
+        # test that we can order the list of all assets by name (asc, desc)
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        asset_dict2 = copy.copy(COMPLETE_ASSET)
+        asset_dict3 = copy.copy(COMPLETE_ASSET)
+        asset_dict1['name'] = "asset1"
+        asset_dict2['name'] = "asset2"
+        asset_dict3['name'] = "asset3"
+        self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
+        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
+        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
+        result_get = client.get(reverse('assets-advanced-list'), data={'ordering': "name"},
+                                format='json')
+        result_get_dict = json.loads(result_get.content)
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict["results"]), 3)
+        self.assertEqual(result_get_dict["results"][0]["name"], "asset1")
+        self.assertEqual(result_get_dict["results"][1]["name"], "asset2")
+        self.assertEqual(result_get_dict["results"][2]["name"], "asset3")
+
+        result_get = client.get(reverse('assets-advanced-list'), data={'ordering': "-name"},
+                                format='json')
+        result_get_dict = json.loads(result_get.content)
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict["results"]), 3)
+        self.assertEqual(result_get_dict["results"][0]["name"], "asset3")
+        self.assertEqual(result_get_dict["results"][1]["name"], "asset2")
+        self.assertEqual(result_get_dict["results"][2]["name"], "asset1")
+
+    def test_field_filter(self):
+        # Test that we can specify the value of a field and it will return those matching
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        asset_dict2 = copy.copy(COMPLETE_ASSET)
+        asset_dict3 = copy.copy(COMPLETE_ASSET)
+        asset_dict1['name'] = "asset"
+        asset_dict2['name'] = "asset"
+        asset_dict3['name'] = "asset3"
+        self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
+        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
+        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
+        result_get = client.get(reverse('assets-advanced-list'), data={'name': "asset"},
+                                format='json')
+        result_get_dict = json.loads(result_get.content)
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict["results"]), 2)
+        result_get = client.get(reverse('assets-advanced-list'), data={'name': "asset3"},
+                                format='json')
+        result_get_dict = json.loads(result_get.content)
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict["results"]), 1)
+        self.assert_dict_list_equal(asset_dict3, result_get_dict["results"][0],
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete'))
+
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
         self.mock_authenticate.return_value = None
