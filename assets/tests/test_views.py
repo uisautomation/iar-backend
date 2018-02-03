@@ -117,7 +117,7 @@ class APIViewsTests(TestCase):
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
         self.mock_authenticate.return_value = None
-        self.assertEqual(request_cb().status_code, 403)
+        self.assertEqual(request_cb().status_code, 401)
 
     def assert_no_scope_fails(self, request_cb):
         """Passing authorisation with incorrect scopes fail."""

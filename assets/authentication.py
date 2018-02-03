@@ -120,3 +120,10 @@ class OAuth2TokenAuthentication(BaseAuthentication):
             return None
 
         return token
+
+    def authenticate_header(self, request):
+        """
+        Return a string used to populate the WWW-Authenticate header for a HTTP 401 response.
+
+        """
+        return 'Bearer'
