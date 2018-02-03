@@ -10,7 +10,7 @@ class AssetManager(models.Manager):
     annotation reflects whether the asset record is "complete" as defined in the requirements."""
     def get_queryset(self):
         """A QuerySet to add an annotation to specify if an Asset is complete or not"""
-        return super().get_queryset().annotate(is_complete=Case(When(Q(
+        return self.get_base_queryset().annotate(is_complete=Case(When(Q(
             Q(name__isnull=False),
             Q(department__isnull=False),
             Q(purpose__isnull=False),
@@ -31,6 +31,14 @@ class AssetManager(models.Manager):
             Q(~Q(storage_format__contains="digital") |
               Q(Q(storage_format__contains="digital"), ~Q(digital_storage_security=[])))),
             then=Value(True)), default=Value(False), output_field=BooleanField()))
+
+    def get_base_queryset(self):
+        """
+        Return the original un-annotated queryset. Useful when the is_complete annotation is not
+        required.
+
+        """
+        return super().get_queryset()
 
 
 class Asset(models.Model):

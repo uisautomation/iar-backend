@@ -3,6 +3,8 @@ from assets.models import Asset
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
+    id = fields.UUIDField(format='hex_verbose', read_only=True)
+
     data_subject = fields.MultipleChoiceField(choices=Asset.DATA_SUBJECT_CHOICES,
                                               allow_null=True, allow_blank=True, required=False)
     data_category = fields.MultipleChoiceField(choices=Asset.DATA_CATEGORY_CHOICES,
