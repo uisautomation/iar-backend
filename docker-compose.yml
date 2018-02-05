@@ -21,6 +21,10 @@ services:
         source: ./
         target: /usr/src/app
         read_only: true
+    environment:
+      - IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT
+      - IAR_CLIENT_ID
+      - IAR_CLIENT_SECRET
     env_file:
       - compose/base.env
   tox:
