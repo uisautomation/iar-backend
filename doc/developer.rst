@@ -62,6 +62,10 @@ flake8
 collectstatic
     Collect static files used by Django to the ``build/static/`` directory.
 
+makemigrations
+    Run the "makemigrations" Django command to examine models for changes.
+    Useful if you don't have a virtualenv set up in your local environment.
+
 .. _devserver:
 
 Run the development server
