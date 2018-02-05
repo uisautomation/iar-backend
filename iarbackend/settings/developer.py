@@ -1,3 +1,5 @@
+import os
+
 # Import settings from the base settings file
 from .base import *  # noqa: F401, F403
 
@@ -44,14 +46,29 @@ MIDDLEWARE = MIDDLEWARE + [  # noqa: F405
 
 STATIC_URL = '/static/'
 
-# These OAuth2 settings are correct only if the development server has been launched via
-# docker-compose.
-ASSETS_OAUTH2_TOKEN_URL = 'http://hydra:4444/oauth2/token'
-ASSETS_OAUTH2_INTROSPECT_URL = 'http://hydra:4444/oauth2/introspect'
-ASSETS_OAUTH2_CLIENT_ID = 'hydraroot'
-ASSETS_OAUTH2_CLIENT_SECRET = 'secret'
-ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+if os.environ.get('IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT') is not None:
+    # These OAuth2 settings are correct only if the development server has been launched via
+    # docker-compose.
+    ASSETS_OAUTH2_TOKEN_URL = (
+        'https://experimental-oauth2.gcloud.automation.uis.cam.ac.uk/oauth2/token')
+    ASSETS_OAUTH2_INTROSPECT_URL = (
+        'https://experimental-oauth2.gcloud.automation.uis.cam.ac.uk/oauth2/introspect')
+    ASSETS_OAUTH2_CLIENT_ID = os.environ.get('IAR_CLIENT_ID')
+    ASSETS_OAUTH2_CLIENT_SECRET = os.environ.get('IAR_CLIENT_SECRET')
+    ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
 
-# Set the OAuth2 authorisation endpoint
-SWAGGER_SETTINGS['SECURITY_DEFINITIONS']['oauth2']['authorizationUrl'] = (  # noqa: F405
+    # Set the OAuth2 authorisation endpoint
+    SWAGGER_SETTINGS['SECURITY_DEFINITIONS']['oauth2']['authorizationUrl'] = (  # noqa: F405
+        'https://experimental-oauth2.gcloud.automation.uis.cam.ac.uk/oauth2/auth')
+else:
+    # These OAuth2 settings are correct only if the development server has been launched via
+    # docker-compose.
+    ASSETS_OAUTH2_TOKEN_URL = 'http://hydra:4444/oauth2/token'
+    ASSETS_OAUTH2_INTROSPECT_URL = 'http://hydra:4444/oauth2/introspect'
+    ASSETS_OAUTH2_CLIENT_ID = 'hydraroot'
+    ASSETS_OAUTH2_CLIENT_SECRET = 'secret'
+    ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+
+    # Set the OAuth2 authorisation endpoint
+    SWAGGER_SETTINGS['SECURITY_DEFINITIONS']['oauth2']['authorizationUrl'] = (  # noqa: F405
     'http://localhost:4444/oauth2/auth')
