@@ -14,7 +14,9 @@ from .permissions import HasScopesPermission
 from .serializers import AssetSerializer
 
 
-REQUIRED_SCOPES = ['lookup:anonymous', 'assetregister']
+REQUIRED_SCOPES = ['assetregister']
+
+
 """
 List of OAuth2 scopes required by this client.
 

@@ -73,7 +73,17 @@ class APIViewsTests(TestCase):
         asset_dict = copy.copy(COMPLETE_ASSET)
         asset_dict['is_complete'] = True
         self.assert_dict_list_equal(asset_dict, result_get_dict,
-                                    ignore_keys=('created_at', 'updated_at', 'url'))
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'id'))
+
+    def test_asset_post_id(self):
+        """POST-ing a new asset gives it an id."""
+        client = APIClient()
+        result_post = client.post('/assets/', COMPLETE_ASSET, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        result_get_dict = json.loads(result_get.content)
+        self.assertIn('id', result_get_dict)
+        self.assertIsNotNone(result_get_dict['id'])
 
     def test_asset_post_is_not_complete(self):
         client = APIClient()
@@ -87,7 +97,7 @@ class APIViewsTests(TestCase):
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
         self.assert_dict_list_equal(asset_dict, result_get_dict,
-                                    ignore_keys=('created_at', 'updated_at', 'url'))
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'id'))
 
     def test_asset_post_missing_paper_storage_security(self):
         client = APIClient()
@@ -102,7 +112,7 @@ class APIViewsTests(TestCase):
         asset_dict['is_complete'] = False
         asset_dict['paper_storage_security'] = []
         self.assert_dict_list_equal(asset_dict, result_get_dict,
-                                    ignore_keys=('created_at', 'updated_at', 'url'))
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'id'))
 
     def test_search_filter(self):
         # Test that the search fields finds an asset called asset2 out of some assets
@@ -183,7 +193,7 @@ class APIViewsTests(TestCase):
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
         self.mock_authenticate.return_value = None
-        self.assertEqual(request_cb().status_code, 403)
+        self.assertEqual(request_cb().status_code, 401)
 
     def assert_no_scope_fails(self, request_cb):
         """Passing authorisation with incorrect scopes fail."""
