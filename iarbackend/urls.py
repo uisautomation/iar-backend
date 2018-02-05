@@ -32,7 +32,6 @@ urlpatterns = [
     path('status', automationcommon.views.status, name='status'),
     path('', include('assets.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('docs/', include_docs_urls(title='Asset Register')),
 ]
 
 # Selectively enable django debug toolbar URLs. Only if the toolbar is

@@ -127,7 +127,7 @@ class APIViewsTests(TestCase):
         result_post = client.post('/assets/', asset_dict2, format='json')
         self.assertEqual(result_post.status_code, 201)
         self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
-        result_get = client.get(reverse('assets-advanced-list'), data={'search': "asset2"},
+        result_get = client.get('/assets/', data={'search': "asset2"},
                                 format='json')
         result_get_dict = json.loads(result_get.content)
         self.assertTrue("results" in result_get_dict)
@@ -148,7 +148,7 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
         self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
         self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
-        result_get = client.get(reverse('assets-advanced-list'), data={'ordering': "name"},
+        result_get = client.get('/assets/', data={'ordering': "name"},
                                 format='json')
         result_get_dict = json.loads(result_get.content)
         self.assertTrue("results" in result_get_dict)
@@ -157,7 +157,7 @@ class APIViewsTests(TestCase):
         self.assertEqual(result_get_dict["results"][1]["name"], "asset2")
         self.assertEqual(result_get_dict["results"][2]["name"], "asset3")
 
-        result_get = client.get(reverse('assets-advanced-list'), data={'ordering': "-name"},
+        result_get = client.get('/assets/', data={'ordering': "-name"},
                                 format='json')
         result_get_dict = json.loads(result_get.content)
         self.assertTrue("results" in result_get_dict)
@@ -178,12 +178,12 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
         self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
         self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
-        result_get = client.get(reverse('assets-advanced-list'), data={'name': "asset"},
+        result_get = client.get('/assets/', data={'name': "asset"},
                                 format='json')
         result_get_dict = json.loads(result_get.content)
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 2)
-        result_get = client.get(reverse('assets-advanced-list'), data={'name': "asset3"},
+        result_get = client.get('/assets/', data={'name': "asset3"},
                                 format='json')
         result_get_dict = json.loads(result_get.content)
         self.assertTrue("results" in result_get_dict)
