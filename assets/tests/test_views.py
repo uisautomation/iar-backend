@@ -133,7 +133,8 @@ class APIViewsTests(TestCase):
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 1)
         self.assert_dict_list_equal(asset_dict2, result_get_dict["results"][0],
-                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete'))
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete',
+                                                 'id'))
 
     def test_order_filter(self):
         # test that we can order the list of all assets by name (asc, desc)
@@ -188,7 +189,8 @@ class APIViewsTests(TestCase):
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 1)
         self.assert_dict_list_equal(asset_dict3, result_get_dict["results"][0],
-                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete'))
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete',
+                                                 'id'))
 
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
