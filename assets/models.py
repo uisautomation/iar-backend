@@ -43,22 +43,22 @@ class AssetManager(models.Manager):
 
 class Asset(models.Model):
     """"Model to store Assets for the Information Asset Register"""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
 
     # a custom manager to include the annotation is_complete
     objects = AssetManager()
 
     # General - asset level
-    name = models.CharField(max_length=255, null=True, blank=True)
-    department = models.CharField(max_length=255, null=True, blank=True)
-    purpose = models.CharField(max_length=255, null=True, blank=True)
-    owner = models.CharField(max_length=50, null=True, blank=True)
-    private = models.NullBooleanField(null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    department = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    purpose = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    owner = models.CharField(max_length=50, null=True, blank=True, db_index=True)
+    private = models.NullBooleanField(null=True, blank=True, db_index=True)
     # Tracks if the owner of the asset is the head of department or a principal investigator
-    research = models.NullBooleanField(null=True, blank=True)
+    research = models.NullBooleanField(null=True, blank=True, db_index=True)
 
     # Persona Data
-    personal_data = models.NullBooleanField(null=True, blank=True)
+    personal_data = models.NullBooleanField(null=True, blank=True, db_index=True)
     DATA_SUBJECT_CHOICES = (
         ('students', 'Students, applicants'),
         ('staff', 'Staff, job applicants'),
@@ -68,7 +68,8 @@ class Asset(models.Model):
         ('supplier', 'Suppliers, professional advisers and consultants'),
         ('public', 'Members of public'),
     )
-    data_subject = MultiSelectField(choices=DATA_SUBJECT_CHOICES, null=True, blank=True)
+    data_subject = MultiSelectField(choices=DATA_SUBJECT_CHOICES, null=True, blank=True,
+                                    db_index=True)
     DATA_CATEGORY_CHOICES = (
         ('education', 'Education details'),
         ('employment', 'Employment details'),
@@ -88,9 +89,10 @@ class Asset(models.Model):
         ('biometric', 'Biometric information'),
         ('criminal', 'Criminal proceedings, outcomes and sentences'),
     )
-    data_category = MultiSelectField(choices=DATA_CATEGORY_CHOICES, null=True, blank=True)
-    recipients_category = models.CharField(max_length=255, null=True, blank=True)
-    recipients_outside_eea = models.CharField(max_length=255, null=True, blank=True)
+    data_category = MultiSelectField(choices=DATA_CATEGORY_CHOICES, null=True, blank=True,
+                                     db_index=True)
+    recipients_category = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    recipients_outside_eea = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     RETENTION_CHOICES = (
         ('<=1', '1 year or less'),
         ('>1,<=5', '>1 to 5 years'),
@@ -99,8 +101,9 @@ class Asset(models.Model):
         ('forever', 'Forever'),
         ('other', 'Other (please specify)'),
     )
-    retention = models.CharField(max_length=255, choices=RETENTION_CHOICES, null=True, blank=True)
-    retention_other = models.CharField(max_length=255, null=True, blank=True)
+    retention = models.CharField(max_length=255, choices=RETENTION_CHOICES, null=True, blank=True,
+                                 db_index=True)
+    retention_other = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     # Risks
     RISK_CHOICES = (
@@ -110,15 +113,16 @@ class Asset(models.Model):
         ('reputational', 'Reputational'),
         ('safety', 'Personal Safety'),
     )
-    risk_type = MultiSelectField(choices=RISK_CHOICES, null=True, blank=True)
+    risk_type = MultiSelectField(choices=RISK_CHOICES, null=True, blank=True, db_index=True)
 
     # Storage
-    storage_location = models.CharField(max_length=255, null=True, blank=True)
+    storage_location = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     STORAGE_FORMAT_CHOICES = (
         ('digital', 'Digital'),
         ('paper', 'Paper'),
     )
-    storage_format = MultiSelectField(choices=STORAGE_FORMAT_CHOICES, null=True, blank=True)
+    storage_format = MultiSelectField(choices=STORAGE_FORMAT_CHOICES, null=True, blank=True,
+                                      db_index=True)
     # Storage # Only if storage_format = 'paper'
     PAPER_STORAGE_SECURITY_CHOICES = (
         ('locked_cabinet', 'Locked filing cabinet'),
@@ -127,7 +131,7 @@ class Asset(models.Model):
         ('locked_building', 'Locked building'),
     )
     paper_storage_security = MultiSelectField(choices=PAPER_STORAGE_SECURITY_CHOICES,
-                                              null=True, blank=True)
+                                              null=True, blank=True, db_index=True)
     # Storage # Only if storage_format = 'digital'
     DIGITAL_STORAGE_SECURITY_CHOICES = (
         ('pwd_controls', 'Password controls'),
@@ -136,8 +140,8 @@ class Asset(models.Model):
         ('encryption', 'Encryption'),
     )
     digital_storage_security = MultiSelectField(choices=DIGITAL_STORAGE_SECURITY_CHOICES,
-                                                null=True, blank=True)
+                                                null=True, blank=True, db_index=True)
 
     # Asset logs
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
