@@ -175,7 +175,7 @@ client secret for the backend:
 
     $ export IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT=1
     $ export IAR_CLIENT_ID="<iar-backend-client-id>"
-    $ export IAR_CLIENT_ID="<iar-backend-client-secret>"
+    $ export IAR_CLIENT_SECRET="<iar-backend-client-secret>"
     $ docker-compose up devserver
 
 Cloud infrastructure
