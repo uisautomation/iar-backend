@@ -7,6 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.response import Response
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import HasScopesPermission
@@ -73,3 +74,8 @@ class AssetViewSet(viewsets.ModelViewSet):
     # forward, we need to decide on a better permissions model based on the (client, scope, user)
     # triple.
     permission_classes = (HasScopesPermission,)
+
+    def update(self, request, *args, **kwargs):
+        super(AssetViewSet, self).update(request, *args, **kwargs)
+        # We force a refresh after an update, so we can get the up to date annotation data
+        return Response(self.get_serializer(self.get_object()).data)
