@@ -16,7 +16,6 @@ class AssetManager(models.Manager):
             Q(purpose__isnull=False),
             Q(Q(research=False) |
               Q(research=True, owner__isnull=False)),
-            Q(owner__isnull=False),
             Q(private__isnull=False),
             Q(personal_data__isnull=False),
             Q(data_subject__isnull=False),
