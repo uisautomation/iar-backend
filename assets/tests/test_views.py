@@ -1,12 +1,11 @@
 import copy
 import json
 from unittest import mock
-
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
-
 from assets.views import REQUIRED_SCOPES
+
 
 COMPLETE_ASSET = {
     "data_subject": [
@@ -232,6 +231,30 @@ class APIViewsTests(TestCase):
 
         return mock.patch(
             'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
+
+    def test_is_complete_on_put(self):
+        """Test that is_complete is refreshed on an update"""
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        del asset_dict1['name']
+        result_post = client.post('/assets/', asset_dict1, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        self.assertFalse(json.loads(result_get.content)["is_complete"])
+        result_put = client.put(json.loads(result_post.content)['url'], COMPLETE_ASSET)
+        self.assertTrue(json.loads(result_put.content)["is_complete"])
+
+    def test_is_complete_on_patch(self):
+        """Test that is_complete is refreshed on an update"""
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        del asset_dict1['name']
+        result_post = client.post('/assets/', asset_dict1, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        self.assertFalse(json.loads(result_get.content)["is_complete"])
+        result_patch = client.patch(json.loads(result_post.content)['url'], {"name": "asset1"})
+        self.assertTrue(json.loads(result_patch.content)["is_complete"])
 
 
 class SwaggerAPITest(TestCase):
