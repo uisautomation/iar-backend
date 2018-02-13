@@ -52,7 +52,7 @@ class Asset(models.Model):
     department = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     purpose = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     owner = models.CharField(max_length=50, null=True, blank=True, db_index=True)
-    private = models.NullBooleanField(null=True, blank=True, db_index=True)
+    private = models.BooleanField(default=False, db_index=True)
     # Tracks if the owner of the asset is the head of department or a principal investigator
     research = models.NullBooleanField(null=True, blank=True, db_index=True)
 
