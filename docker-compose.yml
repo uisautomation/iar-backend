@@ -57,18 +57,9 @@ services:
     ports:
       - "8025:8025"
   consent:
-    build:
-      context: compose/consent
-    entrypoint: ["flask"]
-    command: ["run", "-h", "0.0.0.0", "-p", "8090"]
-    volumes:
-      - "./compose/consent/:/usr/src/app/:ro"
-    working_dir: "/usr/src/app"
-    environment:
-      - FLASK_DEBUG=1
-      - FLASK_APP=app.py
+    image: uisautomation/experimental-mock-consent-app
     env_file:
-      - compose/hydra.env
+      - compose/hydra-consent.env
     ports:
       - "8090:8090"
   hydra:
