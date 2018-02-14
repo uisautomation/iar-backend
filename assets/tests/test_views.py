@@ -1,9 +1,9 @@
 import copy
-import json
 from unittest import mock
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
+from assets.models import Asset
 from assets.views import REQUIRED_SCOPES
 
 
@@ -71,8 +71,8 @@ class APIViewsTests(TestCase):
         client = APIClient()
         result_post = client.post('/assets/', COMPLETE_ASSET, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get = client.get(result_post.json()['url'], format='json')
+        result_get_dict = result_get.json()
         asset_dict = copy.copy(COMPLETE_ASSET)
         asset_dict['is_complete'] = True
         self.assert_dict_list_equal(asset_dict, result_get_dict,
@@ -83,8 +83,8 @@ class APIViewsTests(TestCase):
         client = APIClient()
         result_post = client.post('/assets/', COMPLETE_ASSET, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get = client.get(result_post.json()['url'], format='json')
+        result_get_dict = result_get.json()
         self.assertIn('id', result_get_dict)
         self.assertIsNotNone(result_get_dict['id'])
 
@@ -95,8 +95,8 @@ class APIViewsTests(TestCase):
         del asset_dict['name']
         result_post = client.post('/assets/', asset_dict, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get = client.get(result_post.json()['url'], format='json')
+        result_get_dict = result_get.json()
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
         self.assert_dict_list_equal(asset_dict, result_get_dict,
@@ -111,8 +111,8 @@ class APIViewsTests(TestCase):
         del asset_dict['risk_type']
         result_post = client.post('/assets/', asset_dict, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get = client.get(result_post.json()['url'], format='json')
+        result_get_dict = result_get.json()
         asset_dict['is_complete'] = False
         asset_dict['risk_type'] = []
         self.assert_dict_list_equal(asset_dict, result_get_dict,
@@ -129,8 +129,8 @@ class APIViewsTests(TestCase):
         del asset_dict['retention']
         result_post = client.post('/assets/', asset_dict, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get = client.get(result_post.json()['url'], format='json')
+        result_get_dict = result_get.json()
         asset_dict['is_complete'] = True
         asset_dict['data_subject'] = []
         asset_dict['data_category'] = []
@@ -146,8 +146,8 @@ class APIViewsTests(TestCase):
         del asset_dict['paper_storage_security']
         result_post = client.post('/assets/', asset_dict, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get = client.get(result_post.json()['url'], format='json')
+        result_get_dict = result_get.json()
         asset_dict['is_complete'] = False
         asset_dict['paper_storage_security'] = []
         self.assert_dict_list_equal(asset_dict, result_get_dict,
@@ -168,7 +168,7 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
         result_get = client.get('/assets/', data={'search': "asset2"},
                                 format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get_dict = result_get.json()
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 1)
         self.assert_dict_list_equal(asset_dict2, result_get_dict["results"][0],
@@ -189,7 +189,7 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
         result_get = client.get('/assets/', data={'ordering': "name"},
                                 format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get_dict = result_get.json()
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 3)
         self.assertEqual(result_get_dict["results"][0]["name"], "asset1")
@@ -198,7 +198,7 @@ class APIViewsTests(TestCase):
 
         result_get = client.get('/assets/', data={'ordering': "-name"},
                                 format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get_dict = result_get.json()
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 3)
         self.assertEqual(result_get_dict["results"][0]["name"], "asset3")
@@ -219,12 +219,12 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
         result_get = client.get('/assets/', data={'name': "asset"},
                                 format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get_dict = result_get.json()
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 2)
         result_get = client.get('/assets/', data={'name': "asset3"},
                                 format='json')
-        result_get_dict = json.loads(result_get.content)
+        result_get_dict = result_get.json()
         self.assertTrue("results" in result_get_dict)
         self.assertEqual(len(result_get_dict["results"]), 1)
         self.assert_dict_list_equal(asset_dict3, result_get_dict["results"][0],
@@ -279,10 +279,10 @@ class APIViewsTests(TestCase):
         del asset_dict1['name']
         result_post = client.post('/assets/', asset_dict1, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        self.assertFalse(json.loads(result_get.content)["is_complete"])
-        result_put = client.put(json.loads(result_post.content)['url'], COMPLETE_ASSET)
-        self.assertTrue(json.loads(result_put.content)["is_complete"])
+        result_get = client.get(result_post.json()['url'], format='json')
+        self.assertFalse(result_get.json()["is_complete"])
+        result_put = client.put(result_post.json()['url'], COMPLETE_ASSET)
+        self.assertTrue(result_put.json()["is_complete"])
 
     def test_is_complete_on_patch(self):
         """Test that is_complete is refreshed on an update"""
@@ -291,10 +291,36 @@ class APIViewsTests(TestCase):
         del asset_dict1['name']
         result_post = client.post('/assets/', asset_dict1, format='json')
         self.assertEqual(result_post.status_code, 201)
-        result_get = client.get(json.loads(result_post.content)['url'], format='json')
-        self.assertFalse(json.loads(result_get.content)["is_complete"])
-        result_patch = client.patch(json.loads(result_post.content)['url'], {"name": "asset1"})
-        self.assertTrue(json.loads(result_patch.content)["is_complete"])
+        result_get = client.get(result_post.json()['url'], format='json')
+        self.assertFalse(result_get.json()["is_complete"])
+        result_patch = client.patch(result_post.json()['url'], {"name": "asset1"})
+        self.assertTrue(result_patch.json()["is_complete"])
+
+    def test_delete(self):
+        """Test that the asset is not deleted but marked as deleted"""
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        result_post = client.post('/assets/', asset_dict1, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        asset = Asset.objects.get(pk=result_post.json()['id'])
+        self.assertIsNone(asset.deleted_at)
+
+        # Check that there is 1 asset listed
+        list_assets = client.get('/assets/', format='json')
+        self.assertNotEqual(list_assets.json()['results'], [])
+
+        result_delete = client.delete(result_post.json()['url'])
+        self.assertEqual(result_delete.status_code, 204)
+        asset.refresh_from_db()
+        self.assertIsNotNone(asset.deleted_at)
+
+        # Check that no assets are listed
+        list_assets = client.get('/assets/', format='json')
+        self.assertEqual(list_assets.json()['results'], [])
+
+        # Check that you can't retrieve an asset
+        asset_get = client.get(result_post.json()['url'], format='json')
+        self.assertEqual(asset_get.status_code, 404)
 
 
 class SwaggerAPITest(TestCase):

@@ -23,5 +23,5 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Asset
-        fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        exclude = ('deleted_at',)
+        read_only_fields = ('created_at', 'updated_at', 'is_complete')

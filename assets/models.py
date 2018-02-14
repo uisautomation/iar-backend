@@ -143,3 +143,4 @@ class Asset(models.Model):
     # Asset logs
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
+    deleted_at = models.DateTimeField(default=None, blank=True, null=True)
