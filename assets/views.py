@@ -3,6 +3,7 @@ Views for the assets application.
 
 """
 from django.core.cache import cache
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django_filters.rest_framework import DjangoFilterBackend
@@ -87,6 +88,14 @@ class AssetViewSet(viewsets.ModelViewSet):
     # forward, we need to decide on a better permissions model based on the (client, scope, user)
     # triple.
     permission_classes = (HasScopesPermission,)
+
+    def get_queryset(self):
+        queryset = super(AssetViewSet, self).get_queryset()
+
+        institutions = list(map(lambda inst: inst['instid'],
+                                cache.get("%s:lookup" % self.request.user.username,
+                                          {'institutions': []})['institutions']))
+        return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
 
     def create(self, request, *args, **kwargs):
         validate_asset_user_institution(request.user, request.data['department']

@@ -38,7 +38,7 @@ COMPLETE_ASSET = {
                "culpa qui officia deserunt mollit anim id est laborum.",
     "research": True,
     "owner": "amc203",
-    "private": True,
+    "private": False,
     "personal_data": True,
     "recipients_category": "no idea",
     "recipients_outside_eea": "",
@@ -359,6 +359,20 @@ class APIViewsTests(TestCase):
         asset_dict['name'] = 'asset2'
         result_patch = client.patch('/assets/%s/' % asset.pk, asset_dict)
         self.assertEqual(result_patch.status_code, 200)
+
+    def test_privacy(self):
+        """Test that a User cannot see/access to assets that are private outside their
+        department"""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        asset_dict['private'] = True
+        asset = Asset(**asset_dict)
+        asset.save()
+        result_patch = client.get('/assets/%s/' % asset.pk)
+        self.assertEqual(result_patch.status_code, 404)
+        list_assets = client.get('/assets/', format='json')
+        self.assertEqual(list_assets.json()['results'], [])
 
     def test_delete(self):
         """Test that the asset is not deleted but marked as deleted"""
