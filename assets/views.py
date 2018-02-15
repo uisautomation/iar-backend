@@ -2,11 +2,13 @@
 Views for the assets application.
 
 """
+from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from .authentication import OAuth2TokenAuthentication
@@ -29,6 +31,16 @@ SCHEMA_DECORATOR = swagger_auto_schema(operation_security=[{'oauth2': REQUIRED_S
 Decorator to apply to DRF methods which sets the appropriate security requirements.
 
 """
+
+
+def validate_asset_user_institution(user=None, asset_department=None):
+    if user is None or asset_department is None:
+        raise PermissionDenied
+    institutions = map(lambda inst: inst['instid'],
+                       cache.get("%s:lookup" % user.username,
+                                 {'institutions': []})['institutions'])
+    if asset_department not in institutions:
+        raise PermissionDenied
 
 
 @method_decorator(name='create', decorator=SCHEMA_DECORATOR)
@@ -76,7 +88,22 @@ class AssetViewSet(viewsets.ModelViewSet):
     # triple.
     permission_classes = (HasScopesPermission,)
 
+    def create(self, request, *args, **kwargs):
+        validate_asset_user_institution(request.user, request.data['department']
+        if 'department' in request.data else None)
+        return super(AssetViewSet, self).create(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
+        partial = kwargs.get('partial', False)
+        instance = self.get_object()
+        validate_asset_user_institution(request.user, instance.department)
+        if partial:
+            if 'department' in request.data:
+                validate_asset_user_institution(request.user, request.data['department'])
+        else:
+            validate_asset_user_institution(request.user, request.data['department']
+            if 'department' in request.data else None)
+
         super(AssetViewSet, self).update(request, *args, **kwargs)
         # We force a refresh after an update, so we can get the up to date annotation data
         return Response(self.get_serializer(self.get_object()).data)
@@ -85,3 +112,8 @@ class AssetViewSet(viewsets.ModelViewSet):
         if instance.deleted_at is None:
             instance.deleted_at = now()
             instance.save()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        validate_asset_user_institution(request.user, instance.department)
+        return super(AssetViewSet, self).destroy(request, *args, **kwargs)

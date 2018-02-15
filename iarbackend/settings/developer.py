@@ -56,6 +56,7 @@ if os.environ.get('IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT') is not None:
     ASSETS_OAUTH2_CLIENT_ID = os.environ.get('IAR_CLIENT_ID')
     ASSETS_OAUTH2_CLIENT_SECRET = os.environ.get('IAR_CLIENT_SECRET')
     ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+    LOOKUP_SELF = 'https://lookupproxy.automation.uis.cam.ac.uk/people/token/self'
 
     # Set the OAuth2 authorisation endpoint
     SWAGGER_SETTINGS['SECURITY_DEFINITIONS']['oauth2']['authorizationUrl'] = (  # noqa: F405
@@ -68,6 +69,7 @@ else:
     ASSETS_OAUTH2_CLIENT_ID = 'hydraroot'
     ASSETS_OAUTH2_CLIENT_SECRET = 'secret'
     ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+    LOOKUP_SELF = 'http://lookupproxy:8080/people/token/self'
 
     # Set the OAuth2 authorisation endpoint
     SWAGGER_SETTINGS['SECURITY_DEFINITIONS']['oauth2']['authorizationUrl'] = (  # noqa: F405

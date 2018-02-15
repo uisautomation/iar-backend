@@ -1,5 +1,7 @@
 import copy
 from unittest import mock
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -27,7 +29,7 @@ COMPLETE_ASSET = {
         "acl"
     ],
     "name": "asset1",
-    "department": "department test",
+    "department": "TESTDEPT",
     "purpose": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor "
                "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
                "nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
@@ -54,7 +56,13 @@ class APIViewsTests(TestCase):
         self.auth_patch = self.patch_authenticate()
         self.mock_authenticate = self.auth_patch.start()
         # By default, authentication succeeds
-        self.mock_authenticate.return_value = (None, {'scope': ' '.join(self.required_scopes)})
+        self.user = get_user_model().objects.create_user(username="test0001")
+        cache.set("%s:lookup" % self.user.username,
+                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/TESTDEPT',
+                                     'acronym': None, 'cancelled': False, 'instid': 'TESTDEPT',
+                                     'name': 'Test Department'}]}, 120)
+        self.mock_authenticate.return_value = (self.user,
+                                               {'scope': ' '.join(self.required_scopes)})
 
     def tearDown(self):
         self.auth_patch.stop()
@@ -77,6 +85,14 @@ class APIViewsTests(TestCase):
         asset_dict['is_complete'] = True
         self.assert_dict_list_equal(asset_dict, result_get_dict,
                                     ignore_keys=('created_at', 'updated_at', 'url', 'id'))
+
+    def test_asset_post_validation(self):
+        """User's only allow to post an asset that has a department their are part of"""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 403)
 
     def test_asset_post_id(self):
         """POST-ing a new asset gives it an id."""
@@ -296,6 +312,54 @@ class APIViewsTests(TestCase):
         result_patch = client.patch(result_post.json()['url'], {"name": "asset1"})
         self.assertTrue(result_patch.json()["is_complete"])
 
+    def test_asset_patch_validation(self):
+        """User's only allow to PATCH an asset that has a department their are part of, and the
+        PATCH department has to be one he belongs to"""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        asset = Asset(**asset_dict)
+        asset.save()
+        result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset1"})
+        # Not allowed because the asset belongs to TESTDEPT2
+        self.assertEqual(result_patch.status_code, 403)
+
+        # We fix the department, so now the user should be allow but we try to change the
+        # department to another that the user doesn't belong to
+        asset.department = 'TESTDEPT'
+        asset.save()
+        result_patch = client.patch('/assets/%s/' % asset.pk, {"department": "TESTDEPT2"})
+        self.assertEqual(result_patch.status_code, 403)
+
+        # This one should be allowed
+        result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset2"})
+        self.assertEqual(result_patch.status_code, 200)
+
+    def test_asset_put_validation(self):
+        """User's only allow to PUT an asset that has a department their are part of, and the
+        PUT department has to be one he belongs to"""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        asset = Asset(**asset_dict)
+        asset.save()
+        result_patch = client.patch('/assets/%s/' % asset.pk, COMPLETE_ASSET)
+        # Not allowed because the asset belongs to TESTDEPT2
+        self.assertEqual(result_patch.status_code, 403)
+
+        # We fix the department, so now the user should be allow but we try to change the
+        # department to another that the user doesn't belong to
+        asset.department = 'TESTDEPT'
+        asset.save()
+        result_patch = client.patch('/assets/%s/' % asset.pk, asset_dict)
+        self.assertEqual(result_patch.status_code, 403)
+
+        # This one should be allowed
+        asset_dict['department'] = 'TESTDEPT'
+        asset_dict['name'] = 'asset2'
+        result_patch = client.patch('/assets/%s/' % asset.pk, asset_dict)
+        self.assertEqual(result_patch.status_code, 200)
+
     def test_delete(self):
         """Test that the asset is not deleted but marked as deleted"""
         client = APIClient()
@@ -309,7 +373,22 @@ class APIViewsTests(TestCase):
         list_assets = client.get('/assets/', format='json')
         self.assertNotEqual(list_assets.json()['results'], [])
 
+        cache.set("%s:lookup" % self.user.username,
+                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/UIS',
+                                     'acronym': None, 'cancelled': False, 'instid': 'UIS',
+                                     'name': 'University Information Services'}]}, 120)
+
         result_delete = client.delete(result_post.json()['url'])
+        # User's institution doesn't match asset institution
+        self.assertEqual(result_delete.status_code, 403)
+
+        cache.delete("%s:lookup" % self.user.username)
+        cache.set("%s:lookup" % self.user.username,
+                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/TESTDEPT',
+                                     'acronym': None, 'cancelled': False, 'instid': 'TESTDEPT',
+                                     'name': 'Test Department'}]}, 120)
+        result_delete = client.delete(result_post.json()['url'])
+        # User's institution match asset institution
         self.assertEqual(result_delete.status_code, 204)
         asset.refresh_from_db()
         self.assertIsNotNone(asset.deleted_at)
