@@ -28,15 +28,19 @@ COMPLETE_ASSET = {
     ],
     "name": "asset1",
     "department": "department test",
-    "purpose": "don't know",
+    "purpose": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor "
+               "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+               "nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
+               "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu "
+               "fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
+               "culpa qui officia deserunt mollit anim id est laborum.",
     "research": True,
     "owner": "amc203",
     "private": True,
-    "personal_data": False,
+    "personal_data": True,
     "recipients_category": "no idea",
     "recipients_outside_eea": "",
-    "retention": "<=1",
-    "retention_other": "",
+    "retention": "<1",
     "storage_location": "Who knows"
 }
 
@@ -95,6 +99,42 @@ class APIViewsTests(TestCase):
         result_get_dict = json.loads(result_get.content)
         asset_dict['is_complete'] = False
         asset_dict['name'] = None
+        self.assert_dict_list_equal(asset_dict, result_get_dict,
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'id'))
+
+    def test_asset_post_is_not_complete_risk(self):
+        client = APIClient()
+        # Missing risk_type thus is_complete should return False
+        # This is an specific case because risk_type is a MultiSelect field, and these don't
+        # have null values, only []
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        del asset_dict['risk_type']
+        result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        result_get_dict = json.loads(result_get.content)
+        asset_dict['is_complete'] = False
+        asset_dict['risk_type'] = []
+        self.assert_dict_list_equal(asset_dict, result_get_dict,
+                                    ignore_keys=('created_at', 'updated_at', 'url', 'id'))
+
+    def test_asset_post_is_complete_no_personal_data(self):
+        client = APIClient()
+        # The asset doesn't contain personal data, so there is 3 fields that do not
+        # need to be completed: data_subject, data_category, and retention
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['personal_data'] = False
+        del asset_dict['data_subject']
+        del asset_dict['data_category']
+        del asset_dict['retention']
+        result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        result_get = client.get(json.loads(result_post.content)['url'], format='json')
+        result_get_dict = json.loads(result_get.content)
+        asset_dict['is_complete'] = True
+        asset_dict['data_subject'] = []
+        asset_dict['data_category'] = []
+        asset_dict['retention'] = None
         self.assert_dict_list_equal(asset_dict, result_get_dict,
                                     ignore_keys=('created_at', 'updated_at', 'url', 'id'))
 

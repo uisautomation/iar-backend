@@ -17,14 +17,12 @@ class AssetManager(models.Manager):
             Q(Q(research=False) |
               Q(research=True, owner__isnull=False)),
             Q(private__isnull=False),
-            Q(personal_data__isnull=False),
-            Q(data_subject__isnull=False),
-            Q(data_category__isnull=False),
-            Q(retention__isnull=False),
-            Q(~Q(retention='other') |
-              Q(retention='other', retention_other__isnull=False)),
+            Q(Q(personal_data=False) |
+              Q(Q(personal_data=True), ~Q(data_subject=[]),
+                ~Q(data_category=[]), Q(retention__isnull=False))),
+            ~Q(risk_type=[]),
             Q(storage_location__isnull=False),
-            Q(storage_format__isnull=False),
+            ~Q(storage_format=[]),
             Q(~Q(storage_format__contains="paper") |
               Q(Q(storage_format__contains="paper"), ~Q(paper_storage_security=[]))),
             Q(~Q(storage_format__contains="digital") |
@@ -93,16 +91,14 @@ class Asset(models.Model):
     recipients_category = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     recipients_outside_eea = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     RETENTION_CHOICES = (
-        ('<=1', '1 year or less'),
-        ('>1,<=5', '>1 to 5 years'),
-        ('>5,<=10', '>5 to 10 years'),
-        ('>10,<=75', '>10 to 75 years'),
+        ('<1', 'Less than 1 year'),
+        ('>=1,<=5', '1 to 5 years'),
+        ('>5,<=10', '5 to 10 years'),
+        ('>10,<=75', '10 to 75 years'),
         ('forever', 'Forever'),
-        ('other', 'Other (please specify)'),
     )
     retention = models.CharField(max_length=255, choices=RETENTION_CHOICES, null=True, blank=True,
                                  db_index=True)
-    retention_other = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     # Risks
     RISK_CHOICES = (
@@ -111,6 +107,7 @@ class Asset(models.Model):
         ('compliance', 'Compliance'),
         ('reputational', 'Reputational'),
         ('safety', 'Personal Safety'),
+        ('none', 'None of the above'),
     )
     risk_type = MultiSelectField(choices=RISK_CHOICES, null=True, blank=True, db_index=True)
 
@@ -128,6 +125,7 @@ class Asset(models.Model):
         ('safe', 'Safe'),
         ('locked_room', 'Locked room'),
         ('locked_building', 'Locked building'),
+        ('none', 'None of the above'),
     )
     paper_storage_security = MultiSelectField(choices=PAPER_STORAGE_SECURITY_CHOICES,
                                               null=True, blank=True, db_index=True)
@@ -137,6 +135,7 @@ class Asset(models.Model):
         ('acl', 'Access control lists'),
         ('backup', 'Backup'),
         ('encryption', 'Encryption'),
+        ('none', 'None of the above'),
     )
     digital_storage_security = MultiSelectField(choices=DIGITAL_STORAGE_SECURITY_CHOICES,
                                                 null=True, blank=True, db_index=True)
