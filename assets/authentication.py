@@ -90,11 +90,11 @@ class OAuth2TokenAuthentication(BaseAuthentication):
             except ObjectDoesNotExist:
                 user = get_user_model().objects.create_user(username=subject)
 
-            lookup = requests.get(settings.LOOKUP_SELF+"?fetch=all_insts,all_groups",
-                                   headers={ "Authorization": "Bearer %s" % bearer}).json()
             if cache.get("%s:lookup" % subject) is None:
                 # Adding 10 extra seconds to the expiry so that if the API requests takes long
                 # the cache doesn't get expired between the authentication and the response
+                lookup = requests.get(settings.LOOKUP_SELF + "?fetch=all_insts,all_groups",
+                                      headers={"Authorization": "Bearer %s" % bearer}).json()
                 cache.set("%s:lookup" % subject, lookup,
                           datetime.timedelta(token['exp'] - _utc_now()).seconds+10)
         else:
