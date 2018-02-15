@@ -98,8 +98,9 @@ class AssetViewSet(viewsets.ModelViewSet):
         return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
 
     def create(self, request, *args, **kwargs):
-        validate_asset_user_institution(request.user, request.data['department']
-        if 'department' in request.data else None)
+        validate_asset_user_institution(request.user,
+                                        request.data['department']
+                                        if 'department' in request.data else None)
         return super(AssetViewSet, self).create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
@@ -110,8 +111,9 @@ class AssetViewSet(viewsets.ModelViewSet):
             if 'department' in request.data:
                 validate_asset_user_institution(request.user, request.data['department'])
         else:
-            validate_asset_user_institution(request.user, request.data['department']
-            if 'department' in request.data else None)
+            validate_asset_user_institution(request.user,
+                                            request.data['department']
+                                            if 'department' in request.data else None)
 
         super(AssetViewSet, self).update(request, *args, **kwargs)
         # We force a refresh after an update, so we can get the up to date annotation data
