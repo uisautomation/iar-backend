@@ -3,6 +3,7 @@ Views for the assets application.
 
 """
 from django.utils.decorators import method_decorator
+from django.utils.timezone import now
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
@@ -54,7 +55,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     that have as name "foobar").
 
     """
-    queryset = Asset.objects.all()
+    queryset = Asset.objects.filter(deleted_at__isnull=True)
     serializer_class = AssetSerializer
 
     ordering = ('-created_at',)
@@ -79,3 +80,8 @@ class AssetViewSet(viewsets.ModelViewSet):
         super(AssetViewSet, self).update(request, *args, **kwargs)
         # We force a refresh after an update, so we can get the up to date annotation data
         return Response(self.get_serializer(self.get_object()).data)
+
+    def perform_destroy(self, instance):
+        if instance.deleted_at is None:
+            instance.deleted_at = now()
+            instance.save()
