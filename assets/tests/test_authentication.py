@@ -5,14 +5,13 @@ Test custom DRF authentication
 import datetime
 import json
 from unittest import mock
-
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.http import HttpRequest
 from django.test import TestCase
 from requests import Response
 from rest_framework.request import Request
 from oauthlib.oauth2 import TokenExpiredError
-
 from assets import authentication
 
 
@@ -27,6 +26,7 @@ class OAuth2Test(TestCase):
         # Create an empty HTTP request
         self.request = Request(HttpRequest())
         self.auth = authentication.OAuth2TokenAuthentication()
+        cache.set("testing:test0001:lookup", {}, 1000)
 
     def test_no_token(self):
         """A request with no token is not authenticated."""

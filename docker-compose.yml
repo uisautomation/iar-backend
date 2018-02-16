@@ -8,11 +8,11 @@ services:
     expose:
       - "8080"
     ports:
-      - "8080:8080"
+      - "8000:8080"
     depends_on:
-      - "db"
-      - "debugsmtp"
+      - "iar-db"
       - "hydra"
+      - "lookupproxy"
     # For devserver, mount the local directory inside the container as a volume
     # to allow local changes to be reflected without having to re-build the
     # container.
@@ -21,10 +21,6 @@ services:
         source: ./
         target: /usr/src/app
         read_only: true
-    environment:
-      - IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT
-      - IAR_CLIENT_ID
-      - IAR_CLIENT_SECRET
     env_file:
       - compose/base.env
   tox:
@@ -48,14 +44,31 @@ services:
   shell:
     <<: *devserver
     command: ["shell"]
-  db:
+  iar-db:
     image: postgres
     env_file:
       - compose/base.env
-  debugsmtp:
-    image: mailhog/mailhog
+
+  # Lookup proxy service
+  lookupproxy:
+    build:
+      context: ./compose/
+      dockerfile: lookupproxy.Dockerfile
+    expose:
+      - "8080"
     ports:
-      - "8025:8025"
+      - "8080:8080"
+    depends_on:
+      - "lookupproxy-db"
+      - "hydra"
+    env_file:
+      - compose/lookupproxy.env
+  lookupproxy-db:
+    image: postgres
+    env_file:
+      - compose/lookupproxy.env
+
+  # Hydra OAuth2 infrastructure
   consent:
     image: uisautomation/experimental-mock-consent-app
     env_file:
@@ -63,7 +76,7 @@ services:
     ports:
       - "8090:8090"
   hydra:
-    image: oryd/hydra:v0.11.1-alpine
+    image: oryd/hydra:v0.11.6-alpine
     entrypoint: ["/tmp/start-hydra.sh"]
     ports:
       - "4444:4444"
@@ -71,18 +84,14 @@ services:
     env_file:
       - compose/hydra.env
     depends_on:
-      - hydradb
+      - hydra-db
       - consent
     volumes:
       - "./compose/start-hydra.sh:/tmp/start-hydra.sh/:ro"
-  hydradb:
+  hydra-db:
     image: postgres
     env_file:
       - compose/hydra.env
-  debugsmtp:
-    image: mailhog/mailhog
-    ports:
-      - "8025:8025"
 
 volumes:
   # A persistent volume for tox to store its stuff. This allows caching of

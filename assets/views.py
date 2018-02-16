@@ -2,11 +2,14 @@
 Views for the assets application.
 
 """
+from django.core.cache import cache
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from .authentication import OAuth2TokenAuthentication
@@ -29,6 +32,18 @@ SCHEMA_DECORATOR = swagger_auto_schema(operation_security=[{'oauth2': REQUIRED_S
 Decorator to apply to DRF methods which sets the appropriate security requirements.
 
 """
+
+
+def validate_asset_user_institution(user=None, asset_department=None):
+    """Validates that the user is member of the department that the asset belongs to
+    (asset_department). raises PermissionDenied if it doesn't, passes otherwise."""
+    if user is None or asset_department is None:
+        raise PermissionDenied
+    institutions = map(lambda inst: inst['instid'],
+                       cache.get("%s:lookup" % user.username,
+                                 {'institutions': []})['institutions'])
+    if asset_department not in institutions:
+        raise PermissionDenied
 
 
 @method_decorator(name='create', decorator=SCHEMA_DECORATOR)
@@ -76,12 +91,52 @@ class AssetViewSet(viewsets.ModelViewSet):
     # triple.
     permission_classes = (HasScopesPermission,)
 
+    def get_queryset(self):
+        """get_queryset is patched to only return those assets that are not private or that are
+        prive but the user doing the request belongs to department that owns the asset."""
+        queryset = super(AssetViewSet, self).get_queryset()
+
+        institutions = list(map(lambda inst: inst['instid'],
+                                cache.get("%s:lookup" % self.request.user.username,
+                                          {'institutions': []})['institutions']))
+        return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
+
+    def create(self, request, *args, **kwargs):
+        """create is patched to check that a user can only create a new asset with department
+        equals to one of the departments the user belongs to."""
+        validate_asset_user_institution(request.user,
+                                        request.data['department']
+                                        if 'department' in request.data else None)
+        return super(AssetViewSet, self).create(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
+        """update is patched so that only allows users to modify assets that belong to one of
+        their departments. Or that when they update a department, the new department is one that
+        they belong to."""
+        partial = kwargs.get('partial', False)
+        instance = self.get_object()
+        validate_asset_user_institution(request.user, instance.department)
+        if partial:
+            if 'department' in request.data:
+                validate_asset_user_institution(request.user, request.data['department'])
+        else:
+            validate_asset_user_institution(request.user,
+                                            request.data['department']
+                                            if 'department' in request.data else None)
+
         super(AssetViewSet, self).update(request, *args, **kwargs)
         # We force a refresh after an update, so we can get the up to date annotation data
         return Response(self.get_serializer(self.get_object()).data)
 
     def perform_destroy(self, instance):
+        """perform_destroy patched to not delete the instance but instead flagged as deleted."""
         if instance.deleted_at is None:
             instance.deleted_at = now()
             instance.save()
+
+    def destroy(self, request, *args, **kwargs):
+        """destroy is patched to check that a user can only delete an asset belonging to a
+        department tha the user belongs to."""
+        instance = self.get_object()
+        validate_asset_user_institution(request.user, instance.department)
+        return super(AssetViewSet, self).destroy(request, *args, **kwargs)
