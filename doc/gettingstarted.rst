@@ -89,15 +89,15 @@ application container to be launched in a development mode.
 
     $ docker-compose up devserver
 
-You can browse the API docs at http://localhost:8080/openapi.
-
 Before you can authenticate against the API, you must create an OAuth2 client
 application. The ``scripts/create-client.sh`` will create a suitable client with
 the id "testclient".
 
 After creating the "testclient" client, you can browse the API docs at
-http://localhost:8080/ui. Click the "Authorize" button to obtain an access
+http://localhost:8000/ui. Click the "Authorize" button to obtain an access
 token as "testclient". Remember to select all of the required scopes.
+
+You can also browse the API docs for the lookupproxy at http://localhost:8080/ui.
 
 Next steps
 ``````````
