@@ -35,6 +35,8 @@ Decorator to apply to DRF methods which sets the appropriate security requiremen
 
 
 def validate_asset_user_institution(user=None, asset_department=None):
+    """Validates that the user is member of the department that the asset belongs to
+    (asset_department). raises PermissionDenied if it doesn't, passes otherwise."""
     if user is None or asset_department is None:
         raise PermissionDenied
     institutions = map(lambda inst: inst['instid'],
@@ -90,6 +92,8 @@ class AssetViewSet(viewsets.ModelViewSet):
     permission_classes = (HasScopesPermission,)
 
     def get_queryset(self):
+        """get_queryset is patched to only return those assets that are not private or that are
+        prive but the user doing the request belongs to department that owns the asset."""
         queryset = super(AssetViewSet, self).get_queryset()
 
         institutions = list(map(lambda inst: inst['instid'],
@@ -98,12 +102,17 @@ class AssetViewSet(viewsets.ModelViewSet):
         return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
 
     def create(self, request, *args, **kwargs):
+        """create is patched to check that a user can only create a new asset with department
+        equals to one of the departments the user belongs to."""
         validate_asset_user_institution(request.user,
                                         request.data['department']
                                         if 'department' in request.data else None)
         return super(AssetViewSet, self).create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
+        """update is patched so that only allows users to modify assets that belong to one of
+        their departments. Or that when they update a department, the new department is one that
+        they belong to."""
         partial = kwargs.get('partial', False)
         instance = self.get_object()
         validate_asset_user_institution(request.user, instance.department)
@@ -120,11 +129,14 @@ class AssetViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(self.get_object()).data)
 
     def perform_destroy(self, instance):
+        """perform_destroy patched to not delete the instance but instead flagged as deleted."""
         if instance.deleted_at is None:
             instance.deleted_at = now()
             instance.save()
 
     def destroy(self, request, *args, **kwargs):
+        """destroy is patched to check that a user can only delete an asset belonging to a
+        department tha the user belongs to."""
         instance = self.get_object()
         validate_asset_user_institution(request.user, instance.department)
         return super(AssetViewSet, self).destroy(request, *args, **kwargs)
