@@ -2,14 +2,15 @@
 Test that the admin pages are available and protected.
 
 """
+from unittest import mock
 from urllib.parse import urljoin
-import mock
-from automationcommon.tests.utils import UnitTestCase
+
 from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
 
 
-class AdminTests(UnitTestCase):
+class AdminTests(TestCase):
     def setUp(self):
         # create superuser
         with mock.patch('ucamlookup.utils.PersonMethods') as mocked_pm:
