@@ -1,4 +1,5 @@
 import uuid
+from automationcommon.models import ModelChangeMixin
 from django.db import models
 from django.db.models import Case, When, Q, BooleanField, Value
 from multiselectfield import MultiSelectField
@@ -38,7 +39,7 @@ class AssetManager(models.Manager):
         return super().get_queryset()
 
 
-class Asset(models.Model):
+class Asset(ModelChangeMixin, models.Model):
     """"Model to store Assets for the Information Asset Register"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
 
