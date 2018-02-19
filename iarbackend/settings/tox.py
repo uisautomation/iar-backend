@@ -35,3 +35,4 @@ ASSETS_OAUTH2_INTROSPECT_URL = 'http://oauth2.example.com/oauth2/introspect'
 ASSETS_OAUTH2_CLIENT_ID = 'api-client-id'
 ASSETS_OAUTH2_CLIENT_SECRET = 'api-client-secret'
 ASSETS_OAUTH2_INTROSPECT_SCOPES = ['introspect']
+LOOKUP_SELF = 'http://lookupproxy/people/token/self'

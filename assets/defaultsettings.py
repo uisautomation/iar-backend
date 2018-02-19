@@ -41,3 +41,10 @@ List of OAuth2 scopes the API server will request for the token it will use with
 introspection endpoint.
 
 """
+
+
+LOOKUP_SELF = None
+"""
+URL of the LookupProxy endpoint that the authentication uses to get data about the user logged in.
+
+"""
