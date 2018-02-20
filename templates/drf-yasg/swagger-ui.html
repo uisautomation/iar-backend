@@ -62,7 +62,7 @@
 
 <script id="swagger-settings" type="application/json">{{ swagger_settings | safe }}</script>
 <script id="swagger-oauth2-settings" type="application/json">{
-  "oauth2RedirectUrl": "{% oauth2file request.scheme request.get_host %}"
+  "oauth2RedirectUrl": "{% oauth2file request.scheme request.get_host 'iarbackend/oauth2-redirect.html' %}"
 }</script>
 
 <script src="{% static 'drf-yasg/swagger-ui-dist/swagger-ui-bundle.js' %}"></script>
