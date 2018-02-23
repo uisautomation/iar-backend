@@ -1,6 +1,8 @@
 import copy
 from unittest import mock
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
@@ -55,14 +57,15 @@ class APIViewsTests(TestCase):
         self.maxDiff = None
         self.auth_patch = self.patch_authenticate()
         self.mock_authenticate = self.auth_patch.start()
+
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.refresh_user()
+
         cache.set("%s:lookup" % self.user.username,
                   {'institutions': [{'url': 'http://lookupproxy:8080/institutions/TESTDEPT',
                                      'acronym': None, 'cancelled': False, 'instid': 'TESTDEPT',
                                      'name': 'Test Department'}]}, 120)
-        self.mock_authenticate.return_value = (self.user,
-                                               {'scope': ' '.join(self.required_scopes)})
 
     def tearDown(self):
         self.auth_patch.stop()
@@ -343,22 +346,22 @@ class APIViewsTests(TestCase):
         asset_dict['department'] = 'TESTDEPT2'
         asset = Asset(**asset_dict)
         asset.save()
-        result_patch = client.patch('/assets/%s/' % asset.pk, COMPLETE_ASSET)
+        result_put = client.put('/assets/%s/' % asset.pk, COMPLETE_ASSET)
         # Not allowed because the asset belongs to TESTDEPT2
-        self.assertEqual(result_patch.status_code, 403)
+        self.assertEqual(result_put.status_code, 403)
 
         # We fix the department, so now the user should be allow but we try to change the
         # department to another that the user doesn't belong to
         asset.department = 'TESTDEPT'
         asset.save()
-        result_patch = client.patch('/assets/%s/' % asset.pk, asset_dict)
-        self.assertEqual(result_patch.status_code, 403)
+        result_put = client.put('/assets/%s/' % asset.pk, asset_dict)
+        self.assertEqual(result_put.status_code, 403)
 
         # This one should be allowed
         asset_dict['department'] = 'TESTDEPT'
         asset_dict['name'] = 'asset2'
-        result_patch = client.patch('/assets/%s/' % asset.pk, asset_dict)
-        self.assertEqual(result_patch.status_code, 200)
+        result_put = client.put('/assets/%s/' % asset.pk, asset_dict)
+        self.assertEqual(result_put.status_code, 200)
 
     def test_privacy(self):
         """Test that a User cannot see/access to assets that are private outside their
@@ -414,6 +417,111 @@ class APIViewsTests(TestCase):
         # Check that you can't retrieve an asset
         asset_get = client.get(result_post.json()['url'], format='json')
         self.assertEqual(asset_get.status_code, 404)
+
+    def test_delete_with_perms(self):
+        """Super users can delete any asset,"""
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        result_post = client.post('/assets/', asset_dict1, format='json')
+        self.assertEqual(result_post.status_code, 201)
+        asset = Asset.objects.get(pk=result_post.json()['id'])
+        self.assertIsNone(asset.deleted_at)
+
+        cache.set("%s:lookup" % self.user.username,
+                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/UIS',
+                                     'acronym': None, 'cancelled': False, 'instid': 'UIS',
+                                     'name': 'University Information Services'}]}, 120)
+
+        # Initially fails
+        result_delete = client.delete(result_post.json()['url'])
+        self.assertEqual(result_delete.status_code, 403)
+
+        # Succeeds if use has permission
+        perm = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Asset), codename='delete_asset')
+        self.user.user_permissions.add(perm)
+        self.user.save()
+
+        self.refresh_user()
+
+        self.assertTrue(self.user.has_perm('assets.delete_asset'))
+        result_delete = client.delete(result_post.json()['url'])
+        self.assertEqual(result_delete.status_code, 204)
+
+    def test_patch_with_perms(self):
+        """A user with the change asset permission can patch an asset."""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        asset = Asset(**asset_dict)
+        asset.save()
+
+        result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset1"})
+
+        # Not allowed because the asset belongs to TESTDEPT2
+        self.assertEqual(result_patch.status_code, 403)
+
+        # Succeeds if use has permission
+        perm = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Asset), codename='change_asset')
+        self.user.user_permissions.add(perm)
+        self.user.save()
+
+        self.refresh_user()
+
+        self.assertTrue(self.user.has_perm('assets.change_asset'))
+        result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset1"})
+        self.assertEqual(result_patch.status_code, 200)
+
+    def test_put_with_perms(self):
+        """A user with the change asset permission can put an asset."""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        asset = Asset(**asset_dict)
+        asset.save()
+        result_put = client.put('/assets/%s/' % asset.pk, COMPLETE_ASSET)
+
+        # Not allowed because the asset belongs to TESTDEPT2
+        self.assertEqual(result_put.status_code, 403)
+
+        # Succeeds if use has permission
+        perm = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Asset), codename='change_asset')
+        self.user.user_permissions.add(perm)
+        self.user.save()
+
+        self.refresh_user()
+
+        self.assertTrue(self.user.has_perm('assets.change_asset'))
+        result_put = client.put('/assets/%s/' % asset.pk, COMPLETE_ASSET)
+        self.assertEqual(result_put.status_code, 200)
+
+    def test_post_with_perms(self):
+        """A user with the create asset permission can post an asset."""
+        client = APIClient()
+        asset_dict = copy.copy(COMPLETE_ASSET)
+        asset_dict['department'] = 'TESTDEPT2'
+        result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 403)
+
+        # Succeeds if use has permission
+        perm = Permission.objects.get(
+            content_type=ContentType.objects.get_for_model(Asset), codename='add_asset')
+        self.user.user_permissions.add(perm)
+        self.user.save()
+
+        self.refresh_user()
+
+        self.assertTrue(self.user.has_perm('assets.add_asset'))
+        result_post = client.post('/assets/', asset_dict, format='json')
+        self.assertEqual(result_post.status_code, 201)
+
+    def refresh_user(self):
+        """Refresh user from the database."""
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        self.mock_authenticate.return_value = (self.user,
+                                               {'scope': ' '.join(self.required_scopes)})
 
 
 class SwaggerAPITest(TestCase):
