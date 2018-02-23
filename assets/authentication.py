@@ -81,14 +81,20 @@ class OAuth2TokenAuthentication(BaseAuthentication):
         # get or create a matching Django user if the token has a subject field, otherwise return
         # no user.
         subject = token.get('sub', '')
+
         if subject != '':
+            # Our subjects are of the form '<scheme>:<identifier>'. Form a valid Django username
+            # from these values.
+            scheme, identifier = subject.split(':')
+            username = '{}+{}'.format(scheme, identifier)
+
             # This is not quite the same as the default get_or_create() behaviour because we make
             # use of the create_user() helper here. This ensures the user is created and that
             # set_unusable_password() is also called on it.
             try:
-                user = get_user_model().objects.get(username=subject)
+                user = get_user_model().objects.get(username=username)
             except ObjectDoesNotExist:
-                user = get_user_model().objects.create_user(username=subject)
+                user = get_user_model().objects.create_user(username=username)
 
             if cache.get("%s:lookup" % subject) is None:
                 # Adding 10 extra seconds to the expiry so that if the API requests takes long
