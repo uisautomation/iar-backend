@@ -26,7 +26,7 @@ class OAuth2Test(TestCase):
         # Create an empty HTTP request
         self.request = Request(HttpRequest())
         self.auth = authentication.OAuth2TokenAuthentication()
-        cache.set("testing:test0001:lookup", {}, 1000)
+        cache.set("testing+test0001:lookup", {}, 1000)
 
     def test_no_token(self):
         """A request with no token is not authenticated."""
@@ -43,7 +43,7 @@ class OAuth2Test(TestCase):
         self.assertIsInstance(auth, dict)
 
         # user should exist
-        self.assertTrue(get_user_model().objects.filter(username='testing:test0001').exists())
+        self.assertTrue(get_user_model().objects.filter(username='testing+test0001').exists())
 
     def test_empty_subject(self):
         """A request with a good token but no subject creates no user."""

@@ -13,6 +13,7 @@ If you don't know where to start then :doc:`the getting started guide
     :caption: Contents
 
     gettingstarted
+    administration
     developer
     configuration
     iarbackend
