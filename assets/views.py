@@ -2,6 +2,8 @@
 Views for the assets application.
 
 """
+import logging
+
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils.decorators import method_decorator
@@ -18,6 +20,10 @@ from .permissions import HasScopesPermission
 from .serializers import AssetSerializer
 
 
+LOG = logging.getLogger()
+
+
+# Scopes required to access asset register.
 REQUIRED_SCOPES = ['assetregister']
 
 
@@ -37,11 +43,22 @@ Decorator to apply to DRF methods which sets the appropriate security requiremen
 def validate_asset_user_institution(user=None, asset_department=None):
     """Validates that the user is member of the department that the asset belongs to
     (asset_department). raises PermissionDenied if it doesn't, passes otherwise."""
+
     if user is None or asset_department is None:
         raise PermissionDenied
+
+    lookup_response = cache.get("{user.username}:lookup".format(user=user))
+    if lookup_response is None:
+        LOG.error('No cached lookup response for user %s', user.username)
+        raise PermissionDenied
+
+    institutions = lookup_response.get('institutions')
+    if institutions is None:
+        LOG.error('No institutions in cached lookup response for user %s', user.username)
+        raise PermissionDenied
+
     institutions = map(lambda inst: inst['instid'],
-                       cache.get("%s:lookup" % user.username,
-                                 {'institutions': []})['institutions'])
+                       lookup_response.get('institutions', []))
     if asset_department not in institutions:
         raise PermissionDenied
 

@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authentication import BaseAuthentication
+import requests.exceptions
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 
@@ -96,13 +97,25 @@ class OAuth2TokenAuthentication(BaseAuthentication):
             except ObjectDoesNotExist:
                 user = get_user_model().objects.create_user(username=username)
 
-            if cache.get("%s:lookup" % subject) is None:
+            if cache.get("{user.username}:lookup".format(user=user)) is None:
                 # Adding 10 extra seconds to the expiry so that if the API requests takes long
                 # the cache doesn't get expired between the authentication and the response
-                lookup = requests.get(settings.LOOKUP_SELF + "?fetch=all_insts,all_groups",
-                                      headers={"Authorization": "Bearer %s" % bearer}).json()
-                cache.set("%s:lookup" % subject, lookup,
-                          datetime.timedelta(token['exp'] - _utc_now()).seconds+10)
+                lookup_response = requests.get(
+                    settings.LOOKUP_SELF + "?fetch=all_insts,all_groups",
+                    headers={"Authorization": "Bearer %s" % bearer})
+
+                try:
+                    # Ensure the response succeeded
+                    lookup_response.raise_for_status()
+
+                    # Cache the response body as parsed JSON
+                    cache.set("{user.username}:lookup".format(user=user), lookup_response.json(),
+                              datetime.timedelta(token['exp'] - _utc_now()).seconds+10)
+                except requests.exceptions.HTTPError as error:
+                    LOG.error(
+                        ('HTTP Error {error} retrieving institutions for user "{user.username}" '
+                         'with subject {subject}').format(error=error, user=user, subject=subject))
+                    LOG.error('Payload was: {}'.format(lookup_response.content))
         else:
             user = None
 
@@ -135,6 +148,14 @@ class OAuth2TokenAuthentication(BaseAuthentication):
             LOG.warning('Rejecting token with "exp" in the past: %s with now = %s"',
                         (token['exp'], now))
             return None
+
+        # HACK: lookup:anonymous is required for the moment since we make use of the token/self
+        # lookupproxy endpoint *and* we do so using the bearer token provided to the backend by the
+        # user. TODO: refactor this to use the lookupproxy as the backend client.
+        if 'lookup:anonymous' not in token.get('scope', '').split(' '):
+            LOG.warning(
+                'Presented bearer token with no lookup:anonymous scope. Permissions checking '
+                'will be broken.')
 
         return token
 
