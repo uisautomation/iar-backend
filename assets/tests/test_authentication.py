@@ -26,7 +26,7 @@ class OAuth2Test(TestCase):
         # Create an empty HTTP request
         self.request = Request(HttpRequest())
         self.auth = authentication.OAuth2TokenAuthentication()
-        cache.set("testing:test0001:lookup", {}, 1000)
+        cache.set("testing+test0001:lookup", {}, 1000)
 
     def test_no_token(self):
         """A request with no token is not authenticated."""
