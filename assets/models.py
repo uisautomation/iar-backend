@@ -70,7 +70,8 @@ class Asset(models.Model):
         ('public_engagement', 'Public engagement'),
         ('other', 'Other'),
     )
-    purpose = models.CharField(max_length=255, choices=PURPOSE_CHOICES, null=True, blank=True, db_index=True)
+    purpose = models.CharField(max_length=255, choices=PURPOSE_CHOICES, null=True, blank=True,
+                               db_index=True)
     purpose_other = models.TextField(null=True, blank=True, db_index=True)
     owner = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     private = models.BooleanField(default=False, db_index=True)
@@ -115,11 +116,15 @@ class Asset(models.Model):
         ('no', 'No'),
         ('not_sure', 'Not Sure'),
     )
-    recipients_outside_uni = models.CharField(max_length=8, choices=RECIPIENTS_OUTSIDE_CHOICES, null=True, blank=True, db_index=True)
-    recipients_outside_eea = models.CharField(max_length=8, choices=RECIPIENTS_OUTSIDE_CHOICES, null=True, blank=True, db_index=True)
+    recipients_outside_uni = models.CharField(max_length=8, choices=RECIPIENTS_OUTSIDE_CHOICES,
+                                              null=True, blank=True, db_index=True)
+    recipients_outside_eea = models.CharField(max_length=8, choices=RECIPIENTS_OUTSIDE_CHOICES,
+                                              null=True, blank=True, db_index=True)
 
-    recipients_outside_uni_description = models.CharField(max_length=255, null=True, blank=True, db_index=True)
-    recipients_outside_eea_description = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    recipients_outside_uni_description = models.CharField(max_length=255, null=True, blank=True,
+                                                          db_index=True)
+    recipients_outside_eea_description = models.CharField(max_length=255, null=True, blank=True,
+                                                          db_index=True)
 
     RETENTION_CHOICES = (
         ('<1', 'Less than 1 year'),
@@ -176,6 +181,7 @@ class Asset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
+
 
 # a subset of fields that could be filtered/ordered
 EXPOSED_ASSET_FIELDS = (

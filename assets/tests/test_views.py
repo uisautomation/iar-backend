@@ -590,6 +590,7 @@ class APIViewsTests(TestCase):
         self.user = get_user_model().objects.get(pk=self.user.pk)
         self.mock_authenticate.return_value = (self.user,
                                                {'scope': ' '.join(self.required_scopes)})
+
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
         self.mock_authenticate.return_value = None
@@ -605,6 +606,7 @@ class APIViewsTests(TestCase):
         :param odict1: dictionary 1 that you want to compare to dictionary 2
         :param odict2: dictionary 2 that you want to compare to dictionary 1
         :param ignore_keys: list of the dictionary keys you don't want to compare
+        :param msg: pass statement - shown on failure
         :type odict1: dict
         :type odict2: dict
         :type ignore_keys: list
@@ -623,7 +625,8 @@ class APIViewsTests(TestCase):
                 d2[k] = set(v)
         return self.assertDictEqual(d1, d2, msg)
 
-    def patch_authenticate(self, return_value=None):
+    @staticmethod
+    def patch_authenticate(return_value=None):
         """Patch authentication's authenticate function."""
         mock_authenticate = mock.MagicMock()
         mock_authenticate.return_value = return_value
@@ -638,6 +641,7 @@ class APIViewsTests(TestCase):
         self.assertEqual(result_post.status_code, 201)
         result_get = client.get(result_post.json()['url'], format='json')
         return result_get.json()
+
 
 class SwaggerAPITest(TestCase):
     def test_security_definitions(self):
