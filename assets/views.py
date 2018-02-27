@@ -15,7 +15,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from .authentication import OAuth2TokenAuthentication
-from .models import Asset
+from .models import Asset, EXPOSED_ASSET_FIELDS
 from .permissions import HasScopesPermission
 from .serializers import AssetSerializer
 
@@ -92,12 +92,7 @@ class AssetViewSet(viewsets.ModelViewSet):
 
     ordering = ('-created_at',)
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    filter_fields = search_fields = ordering_fields = \
-        ('id', 'name', 'department', 'purpose', 'owner', 'private', 'research',
-         'personal_data', 'data_subject', 'data_category', 'recipients_category',
-         'recipients_outside_eea', 'retention', 'risk_type', 'storage_location',
-         'storage_format', 'paper_storage_security', 'digital_storage_security',
-         'created_at', 'updated_at')
+    filter_fields = search_fields = ordering_fields = EXPOSED_ASSET_FIELDS
 
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES

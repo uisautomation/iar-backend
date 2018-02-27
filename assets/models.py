@@ -14,19 +14,25 @@ class AssetManager(models.Manager):
             Q(name__isnull=False),
             Q(department__isnull=False),
             Q(purpose__isnull=False),
-            Q(Q(research=False) |
-              Q(research=True, owner__isnull=False)),
-            Q(private__isnull=False),
+            Q(Q(purpose='research', owner__isnull=False) |
+              ~Q(purpose='research')),
+            Q(Q(purpose='other', purpose_other__isnull=False) |
+              ~Q(purpose='other')),
             Q(Q(personal_data=False) |
-              Q(Q(personal_data=True), ~Q(data_subject=[]),
-                ~Q(data_category=[]), Q(retention__isnull=False))),
+              Q(Q(personal_data=True), ~Q(data_subject=[]), ~Q(data_category=[]),
+                recipients_outside_uni__isnull=False, recipients_outside_eea__isnull=False,
+                retention__isnull=False)),
+            Q(Q(recipients_outside_uni='yes', recipients_outside_uni_description__isnull=False) |
+              ~Q(recipients_outside_uni='yes')),
+            Q(Q(recipients_outside_eea='yes', recipients_outside_eea_description__isnull=False) |
+              ~Q(recipients_outside_eea='yes')),
             ~Q(risk_type=[]),
             Q(storage_location__isnull=False),
             ~Q(storage_format=[]),
-            Q(~Q(storage_format__contains="paper") |
-              Q(Q(storage_format__contains="paper"), ~Q(paper_storage_security=[]))),
-            Q(~Q(storage_format__contains="digital") |
-              Q(Q(storage_format__contains="digital"), ~Q(digital_storage_security=[])))),
+            Q(~Q(storage_format__contains='paper') |
+              Q(Q(storage_format__contains='paper'), ~Q(paper_storage_security=[]))),
+            Q(~Q(storage_format__contains='digital') |
+              Q(Q(storage_format__contains='digital'), ~Q(digital_storage_security=[])))),
             then=Value(True)), default=Value(False), output_field=BooleanField()))
 
     def get_base_queryset(self):
@@ -39,6 +45,7 @@ class AssetManager(models.Manager):
 
 
 class Asset(models.Model):
+
     """"Model to store Assets for the Information Asset Register"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
 
@@ -48,11 +55,26 @@ class Asset(models.Model):
     # General - asset level
     name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     department = models.CharField(max_length=255, null=True, blank=True, db_index=True)
-    purpose = models.TextField(null=True, blank=True, db_index=True)
+
+    PURPOSE_CHOICES = (
+        ('teaching', 'Teaching'),
+        ('research', 'Research'),
+        ('student_administration', 'Student administration'),
+        ('staff_administration', 'Staff administration (HR)'),
+        ('alumni_supporter_administration', 'Alumni/supporter administration'),
+        ('supplier_customer_administration', 'Supplier/customer administration'),
+        ('financial_estate_administration', 'Financial/estate administration'),
+        ('governance_compliance', 'Governance/compliance'),
+        ('security', 'Security'),
+        ('marketing', 'Marketing'),
+        ('public_engagement', 'Public engagement'),
+        ('other', 'Other'),
+    )
+    purpose = models.CharField(max_length=255, choices=PURPOSE_CHOICES, null=True, blank=True,
+                               db_index=True)
+    purpose_other = models.TextField(null=True, blank=True, db_index=True)
     owner = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     private = models.BooleanField(default=False, db_index=True)
-    # Tracks if the owner of the asset is the head of department or a principal investigator
-    research = models.NullBooleanField(null=True, blank=True, db_index=True)
 
     # Persona Data
     personal_data = models.NullBooleanField(null=True, blank=True, db_index=True)
@@ -88,8 +110,22 @@ class Asset(models.Model):
     )
     data_category = MultiSelectField(choices=DATA_CATEGORY_CHOICES, null=True, blank=True,
                                      db_index=True)
-    recipients_category = models.CharField(max_length=255, null=True, blank=True, db_index=True)
-    recipients_outside_eea = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+
+    RECIPIENTS_OUTSIDE_CHOICES = (
+        ('yes', 'Yes'),
+        ('no', 'No'),
+        ('not_sure', 'Not Sure'),
+    )
+    recipients_outside_uni = models.CharField(max_length=8, choices=RECIPIENTS_OUTSIDE_CHOICES,
+                                              null=True, blank=True, db_index=True)
+    recipients_outside_eea = models.CharField(max_length=8, choices=RECIPIENTS_OUTSIDE_CHOICES,
+                                              null=True, blank=True, db_index=True)
+
+    recipients_outside_uni_description = models.CharField(max_length=255, null=True, blank=True,
+                                                          db_index=True)
+    recipients_outside_eea_description = models.CharField(max_length=255, null=True, blank=True,
+                                                          db_index=True)
+
     RETENTION_CHOICES = (
         ('<1', 'Less than 1 year'),
         ('>=1,<=5', '1 to 5 years'),
@@ -110,6 +146,7 @@ class Asset(models.Model):
         ('none', 'None of the above'),
     )
     risk_type = MultiSelectField(choices=RISK_CHOICES, null=True, blank=True, db_index=True)
+    risk_type_additional = models.TextField(null=True, blank=True, db_index=True)
 
     # Storage
     storage_location = models.CharField(max_length=255, null=True, blank=True, db_index=True)
@@ -144,3 +181,15 @@ class Asset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
+
+
+# a subset of fields that could be filtered/ordered
+EXPOSED_ASSET_FIELDS = (
+    'id', 'name', 'department', 'purpose', 'purpose_other', 'owner', 'private',
+    'personal_data', 'data_subject', 'data_category',
+    'recipients_outside_uni', 'recipients_outside_uni_description',
+    'recipients_outside_eea', 'recipients_outside_eea_description',
+    'retention', 'risk_type', 'risk_type_additional', 'storage_location',
+    'storage_format', 'paper_storage_security', 'digital_storage_security',
+    'created_at', 'updated_at'
+)
