@@ -41,6 +41,39 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # workaround to recreate the purpose_other index with the correct name
+        migrations.AlterField(
+            model_name='asset',
+            name='purpose_other',
+            field=models.TextField(blank=True, db_index=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='asset',
+            name='purpose_other',
+            field=models.TextField(blank=True, db_index=True, null=True),
+        ),
+        # workaround to recreate the recipients_outside_uni_description index with the correct name
+        migrations.AlterField(
+            model_name='asset',
+            name='recipients_outside_uni_description',
+            field=models.TextField(blank=True, db_index=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='asset',
+            name='recipients_outside_uni_description',
+            field=models.CharField(blank=True, db_index=True, max_length=255, null=True),
+        ),
+        # workaround to recreate the recipients_outside_eea_description index with the correct name
+        migrations.AlterField(
+            model_name='asset',
+            name='recipients_outside_eea_description',
+            field=models.TextField(blank=True, db_index=False, null=True),
+        ),
+        migrations.AlterField(
+            model_name='asset',
+            name='recipients_outside_eea_description',
+            field=models.CharField(blank=True, db_index=True, max_length=255, null=True),
+        ),
         migrations.AddField(
             model_name='asset',
             name='purpose',
