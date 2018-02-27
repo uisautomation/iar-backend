@@ -11,6 +11,7 @@ from assets.models import Asset
 from assets.views import REQUIRED_SCOPES
 
 
+# A complete asset used as a fixture in the following tests.
 COMPLETE_ASSET = {
     "name": "asset1",
     "department": "TESTDEPT",
@@ -48,12 +49,10 @@ COMPLETE_ASSET = {
 
 
 class APIViewsTests(TestCase):
-    required_scopes = REQUIRED_SCOPES
-
     def setUp(self):
         super().setUp()
         self.maxDiff = None
-        self.auth_patch = self.patch_authenticate()
+        self.auth_patch = patch_authenticate()
         self.mock_authenticate = self.auth_patch.start()
 
         # By default, authentication succeeds
@@ -333,32 +332,6 @@ class APIViewsTests(TestCase):
         self.assertEqual(result_get_dict["results"][1]["name"], "asset2")
         self.assertEqual(result_get_dict["results"][2]["name"], "asset1")
 
-    def test_field_filter(self):
-        # Test that we can specify the value of a field and it will return those matching
-        client = APIClient()
-        asset_dict1 = copy.copy(COMPLETE_ASSET)
-        asset_dict2 = copy.copy(COMPLETE_ASSET)
-        asset_dict3 = copy.copy(COMPLETE_ASSET)
-        asset_dict1['name'] = "asset"
-        asset_dict2['name'] = "asset"
-        asset_dict3['name'] = "asset3"
-        self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
-        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
-        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
-        result_get = client.get('/assets/', data={'name': "asset"},
-                                format='json')
-        result_get_dict = result_get.json()
-        self.assertTrue("results" in result_get_dict)
-        self.assertEqual(len(result_get_dict["results"]), 2)
-        result_get = client.get('/assets/', data={'name': "asset3"},
-                                format='json')
-        result_get_dict = result_get.json()
-        self.assertTrue("results" in result_get_dict)
-        self.assertEqual(len(result_get_dict["results"]), 1)
-        self.assert_dict_list_equal(asset_dict3, result_get_dict["results"][0],
-                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete',
-                                                 'id'))
-
     def test_is_complete_on_put(self):
         """Test that is_complete is refreshed on an update"""
         client = APIClient()
@@ -588,8 +561,7 @@ class APIViewsTests(TestCase):
     def refresh_user(self):
         """Refresh user from the database."""
         self.user = get_user_model().objects.get(pk=self.user.pk)
-        self.mock_authenticate.return_value = (self.user,
-                                               {'scope': ' '.join(self.required_scopes)})
+        self.mock_authenticate.return_value = (self.user, {'scope': ' '.join(REQUIRED_SCOPES)})
 
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
@@ -625,15 +597,6 @@ class APIViewsTests(TestCase):
                 d2[k] = set(v)
         return self.assertDictEqual(d1, d2, msg)
 
-    @staticmethod
-    def patch_authenticate(return_value=None):
-        """Patch authentication's authenticate function."""
-        mock_authenticate = mock.MagicMock()
-        mock_authenticate.return_value = return_value
-
-        return mock.patch(
-            'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
-
     def post_asset(self, asset):
         """Helper for creating an asset and parsing the response"""
         client = APIClient()
@@ -643,7 +606,131 @@ class APIViewsTests(TestCase):
         return result_get.json()
 
 
+# An alternate asset to COMPLETE_ASSET. It is intended the this asset is never filtered for in
+# AssetFilterTests.
+DIFFERENT_ASSET = {
+    "name": "asset2",
+    "department": "OTHER",
+    "purpose": "other",
+    "purpose_other": "Something else",
+    "owner": None,
+    "private": True,
+    "personal_data": False,
+    "data_subject": [],
+    "data_category": [],
+    "recipients_outside_uni": None,
+    "recipients_outside_uni_description": None,
+    "recipients_outside_eea": None,
+    "recipients_outside_eea_description": None,
+    "retention": None,
+    "risk_type": [
+        "operational", "reputational"
+    ],
+    "risk_type_additional": None,
+    "storage_location": "Who knows",
+    "storage_format": [
+        "digital", "paper"
+    ],
+    "paper_storage_security": [
+        "locked_cabinet"
+    ],
+    "digital_storage_security": [
+        "acl"
+    ],
+}
+
+
+class AssetFilterTests(TestCase):
+    """
+    Tests relating to the custom DjangoFilterBackend filter_class -> AssetFilter
+    """
+    def setUp(self):
+        super().setUp()
+        self.maxDiff = None
+        self.auth_patch = patch_authenticate()
+        self.mock_authenticate = self.auth_patch.start()
+
+        # By default, authentication succeeds
+        self.user = get_user_model().objects.create_user(username="test0001")
+        self.mock_authenticate.return_value = (self.user, {'scope': ' '.join(REQUIRED_SCOPES)})
+
+        self.client = APIClient()
+        self.client.post('/assets/', COMPLETE_ASSET, format='json')
+        self.client.post('/assets/', DIFFERENT_ASSET, format='json')
+
+    def test_filter_by_department(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'department': 'TESTDEPT'}, format='json')
+        )
+
+    def test_filter_by_purpose(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'purpose': 'research'}, format='json')
+        )
+
+    def test_filter_by_owner(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'owner': 'amc203'}, format='json')
+        )
+
+    def test_filter_by_private(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'private': 'false'}, format='json')
+        )
+
+    def test_filter_by_personal_data(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'personal_data': 'true'}, format='json')
+        )
+
+    def test_filter_by_recipients_outside_uni(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'recipients_outside_uni': 'yes'}, format='json')
+        )
+
+    def test_filter_by_recipients_outside_eea(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'recipients_outside_eea': 'no'}, format='json')
+        )
+
+    def test_filter_by_retention(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'retention': '<1'}, format='json')
+        )
+
+    def test_filter_is_complete(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'is_complete': 'true'}, format='json')
+        )
+
+    def tearDown(self):
+        self.auth_patch.stop()
+        super().tearDown()
+
+    def assertAsset1(self, results):
+        """
+        Assert that only the result set contains exactly the COMPLETE_ASSET.
+        :param results: test Assets result set.
+        """
+        result_get_dict = results.json()
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict['results']), 1)
+        self.assertEqual(result_get_dict['results'][0]['name'], 'asset1')
+
+
+def patch_authenticate(return_value=None):
+    """Patch authentication's authenticate function."""
+    mock_authenticate = mock.MagicMock()
+    mock_authenticate.return_value = return_value
+
+    return mock.patch(
+        'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
+
+
 class SwaggerAPITest(TestCase):
+    """
+    Tests relating to the use of Swagger (OpenAPI)
+    """
     def test_security_definitions(self):
         """API spec should define an oauth2 security requirement."""
         spec = self.get_spec()
