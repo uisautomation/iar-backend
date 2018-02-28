@@ -45,12 +45,6 @@ class AssetTests(TestCase):
     Test's for the Asset model.
     """
 
-    def setUp(self):
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-
     def test_is_complete(self):
         Asset.objects.create(**COMPLETE_ASSET)
         self.assertTrue(Asset.objects.first().is_complete)
