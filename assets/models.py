@@ -181,15 +181,3 @@ class Asset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
-
-
-# a subset of fields that could be filtered/ordered
-EXPOSED_ASSET_FIELDS = (
-    'id', 'name', 'department', 'purpose', 'purpose_other', 'owner', 'private',
-    'personal_data', 'data_subject', 'data_category',
-    'recipients_outside_uni', 'recipients_outside_uni_description',
-    'recipients_outside_eea', 'recipients_outside_eea_description',
-    'retention', 'risk_type', 'risk_type_additional', 'storage_location',
-    'storage_format', 'paper_storage_security', 'digital_storage_security',
-    'created_at', 'updated_at'
-)

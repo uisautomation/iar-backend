@@ -8,52 +8,15 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from assets.models import Asset
+from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 
 
-COMPLETE_ASSET = {
-    "name": "asset1",
-    "department": "TESTDEPT",
-    "purpose": "research",
-    "purpose_other": None,
-    "owner": "amc203",
-    "private": False,
-    "personal_data": True,
-    "data_subject": [
-        "students"
-    ],
-    "data_category": [
-        "research"
-    ],
-    "recipients_outside_uni": "yes",
-    "recipients_outside_uni_description": "no idea",
-    "recipients_outside_eea": "no",
-    "recipients_outside_eea_description": None,
-    "retention": "<1",
-    "risk_type": [
-        "operational", "reputational"
-    ],
-    "risk_type_additional": None,
-    "storage_location": "Who knows",
-    "storage_format": [
-        "digital", "paper"
-    ],
-    "paper_storage_security": [
-        "locked_cabinet"
-    ],
-    "digital_storage_security": [
-        "acl"
-    ],
-}
-
-
 class APIViewsTests(TestCase):
-    required_scopes = REQUIRED_SCOPES
-
     def setUp(self):
         super().setUp()
         self.maxDiff = None
-        self.auth_patch = self.patch_authenticate()
+        self.auth_patch = patch_authenticate()
         self.mock_authenticate = self.auth_patch.start()
 
         # By default, authentication succeeds
@@ -93,193 +56,6 @@ class APIViewsTests(TestCase):
         result_get_dict = result_get.json()
         self.assertIn('id', result_get_dict)
         self.assertIsNotNone(result_get_dict['id'])
-
-    def test_asset_post_is_complete(self):
-        self.assert_dict_list_equal(
-            {**COMPLETE_ASSET, **{'is_complete': True}}, self.post_asset(COMPLETE_ASSET),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
-
-    def test_asset_post_is_complete_no_personal_data(self):
-        # The asset doesn't contain personal data, so there is 3 fields that do not
-        # need to be completed: data_subject, data_category, and retention
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['personal_data'] = False
-        asset_dict['data_subject'] = []
-        asset_dict['data_category'] = []
-        del asset_dict['recipients_outside_uni']
-        del asset_dict['recipients_outside_eea']
-        del asset_dict['retention']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': True}}, self.post_asset(asset_dict),
-            ignore_keys=(
-                'created_at', 'updated_at', 'url', 'id', 'data_subject', 'data_category',
-                'recipients_outside_uni', 'recipients_outside_eea', 'retention'
-            )
-        )
-
-    def test_asset_post_is_not_complete_name(self):
-        """ Missing name so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['name']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'name')
-        )
-
-    def test_asset_post_is_not_complete_purpose(self):
-        """ Missing purpose so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['purpose']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'purpose')
-        )
-
-    def test_asset_post_is_not_complete_owner(self):
-        """ Missing owner when purpose='research' so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['owner']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'owner')
-        )
-
-    def test_asset_post_is_not_complete_purpose_other(self):
-        """ Missing purpose_other when purpose='other' so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['purpose'] = 'other'
-        del asset_dict['purpose_other']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'purpose_other')
-        )
-
-    def test_asset_post_is_not_complete_data_subject(self):
-        """ Missing data_subject when personal_data=True so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['data_subject'] = []
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
-
-    def test_asset_post_is_not_complete_data_category(self):
-        """ Missing data_category when personal_data=True so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['data_category'] = []
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
-
-    def test_asset_post_is_not_complete_recipients_outside_uni(self):
-        """ Missing recipients_outside_uni when personal_data=True so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['recipients_outside_uni']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'recipients_outside_uni')
-        )
-
-    def test_asset_post_is_not_complete_recipients_outside_eea(self):
-        """ Missing recipients_outside_eea when personal_data=True so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['recipients_outside_eea']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'recipients_outside_eea')
-        )
-
-    def test_asset_post_is_not_complete_retention(self):
-        """ Missing retention when personal_data=True so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['retention']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'retention')
-        )
-
-    def test_asset_post_is_not_complete_recipients_outside_uni_description(self):
-        """
-        Missing recipients_outside_uni_description when recipients_outside_uni=Yes
-        so is_complete is False
-        """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['recipients_outside_uni'] = 'yes'
-        del asset_dict['recipients_outside_uni_description']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=(
-                'created_at', 'updated_at', 'url', 'id', 'recipients_outside_uni_description'
-            )
-        )
-
-    def test_asset_post_is_not_complete_recipients_outside_eea_description(self):
-        """
-        Missing recipients_outside_eea_description when recipients_outside_eea=Yes
-        so is_complete is False
-        """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['recipients_outside_eea'] = 'yes'
-        del asset_dict['recipients_outside_eea_description']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=(
-                'created_at', 'updated_at', 'url', 'id', 'recipients_outside_eea_description'
-            )
-        )
-
-    def test_asset_post_is_not_complete_risk_type(self):
-        """ Missing risk_type so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['risk_type'] = []
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
-
-    def test_asset_post_is_not_complete_storage_location(self):
-        """ Missing storage_location so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        del asset_dict['storage_location']
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id', 'storage_location')
-        )
-
-    def test_asset_post_is_not_complete_storage_format(self):
-        """ Missing storage_format so is_complete is False """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['storage_format'] = []
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
-
-    def test_asset_post_is_not_complete_paper_storage_security(self):
-        """
-        Missing paper_storage_security when storage_format contains 'paper'
-        so is_complete is False
-        """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['paper_storage_security'] = []
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
-
-    def test_asset_post_is_not_complete_digital_storage_security(self):
-        """
-        Missing digital_storage_security when storage_format contains 'paper'
-        so is_complete is False
-        """
-        asset_dict = copy.copy(COMPLETE_ASSET)
-        asset_dict['digital_storage_security'] = []
-        self.assert_dict_list_equal(
-            {**asset_dict, **{'is_complete': False}}, self.post_asset(asset_dict),
-            ignore_keys=('created_at', 'updated_at', 'url', 'id')
-        )
 
     def test_search_filter(self):
         # Test that the search fields finds an asset called asset2 out of some assets
@@ -332,32 +108,6 @@ class APIViewsTests(TestCase):
         self.assertEqual(result_get_dict["results"][0]["name"], "asset3")
         self.assertEqual(result_get_dict["results"][1]["name"], "asset2")
         self.assertEqual(result_get_dict["results"][2]["name"], "asset1")
-
-    def test_field_filter(self):
-        # Test that we can specify the value of a field and it will return those matching
-        client = APIClient()
-        asset_dict1 = copy.copy(COMPLETE_ASSET)
-        asset_dict2 = copy.copy(COMPLETE_ASSET)
-        asset_dict3 = copy.copy(COMPLETE_ASSET)
-        asset_dict1['name'] = "asset"
-        asset_dict2['name'] = "asset"
-        asset_dict3['name'] = "asset3"
-        self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
-        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
-        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
-        result_get = client.get('/assets/', data={'name': "asset"},
-                                format='json')
-        result_get_dict = result_get.json()
-        self.assertTrue("results" in result_get_dict)
-        self.assertEqual(len(result_get_dict["results"]), 2)
-        result_get = client.get('/assets/', data={'name': "asset3"},
-                                format='json')
-        result_get_dict = result_get.json()
-        self.assertTrue("results" in result_get_dict)
-        self.assertEqual(len(result_get_dict["results"]), 1)
-        self.assert_dict_list_equal(asset_dict3, result_get_dict["results"][0],
-                                    ignore_keys=('created_at', 'updated_at', 'url', 'is_complete',
-                                                 'id'))
 
     def test_is_complete_on_put(self):
         """Test that is_complete is refreshed on an update"""
@@ -588,8 +338,7 @@ class APIViewsTests(TestCase):
     def refresh_user(self):
         """Refresh user from the database."""
         self.user = get_user_model().objects.get(pk=self.user.pk)
-        self.mock_authenticate.return_value = (self.user,
-                                               {'scope': ' '.join(self.required_scopes)})
+        self.mock_authenticate.return_value = (self.user, {'scope': ' '.join(REQUIRED_SCOPES)})
 
     def assert_no_auth_fails(self, request_cb):
         """Passing no authorisation fails."""
@@ -625,15 +374,6 @@ class APIViewsTests(TestCase):
                 d2[k] = set(v)
         return self.assertDictEqual(d1, d2, msg)
 
-    @staticmethod
-    def patch_authenticate(return_value=None):
-        """Patch authentication's authenticate function."""
-        mock_authenticate = mock.MagicMock()
-        mock_authenticate.return_value = return_value
-
-        return mock.patch(
-            'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
-
     def post_asset(self, asset):
         """Helper for creating an asset and parsing the response"""
         client = APIClient()
@@ -643,7 +383,131 @@ class APIViewsTests(TestCase):
         return result_get.json()
 
 
+# An alternate asset to COMPLETE_ASSET. It is intended the this asset is never filtered for in
+# AssetFilterTests.
+DIFFERENT_ASSET = {
+    "name": "asset2",
+    "department": "OTHER",
+    "purpose": "other",
+    "purpose_other": "Something else",
+    "owner": None,
+    "private": True,
+    "personal_data": False,
+    "data_subject": [],
+    "data_category": [],
+    "recipients_outside_uni": None,
+    "recipients_outside_uni_description": None,
+    "recipients_outside_eea": None,
+    "recipients_outside_eea_description": None,
+    "retention": None,
+    "risk_type": [
+        "operational", "reputational"
+    ],
+    "risk_type_additional": None,
+    "storage_location": "Who knows",
+    "storage_format": [
+        "digital", "paper"
+    ],
+    "paper_storage_security": [
+        "locked_cabinet"
+    ],
+    "digital_storage_security": [
+        "acl"
+    ],
+}
+
+
+class AssetFilterTests(TestCase):
+    """
+    Tests relating to the custom DjangoFilterBackend filter_class -> AssetFilter
+    """
+    def setUp(self):
+        super().setUp()
+        self.maxDiff = None
+        self.auth_patch = patch_authenticate()
+        self.mock_authenticate = self.auth_patch.start()
+
+        # By default, authentication succeeds
+        self.user = get_user_model().objects.create_user(username="test0001")
+        self.mock_authenticate.return_value = (self.user, {'scope': ' '.join(REQUIRED_SCOPES)})
+
+        self.client = APIClient()
+        self.client.post('/assets/', COMPLETE_ASSET, format='json')
+        self.client.post('/assets/', DIFFERENT_ASSET, format='json')
+
+    def test_filter_by_department(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'department': 'TESTDEPT'}, format='json')
+        )
+
+    def test_filter_by_purpose(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'purpose': 'research'}, format='json')
+        )
+
+    def test_filter_by_owner(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'owner': 'amc203'}, format='json')
+        )
+
+    def test_filter_by_private(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'private': 'false'}, format='json')
+        )
+
+    def test_filter_by_personal_data(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'personal_data': 'true'}, format='json')
+        )
+
+    def test_filter_by_recipients_outside_uni(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'recipients_outside_uni': 'yes'}, format='json')
+        )
+
+    def test_filter_by_recipients_outside_eea(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'recipients_outside_eea': 'no'}, format='json')
+        )
+
+    def test_filter_by_retention(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'retention': '<1'}, format='json')
+        )
+
+    def test_filter_is_complete(self):
+        self.assertAsset1(
+            self.client.get('/assets/', data={'is_complete': 'true'}, format='json')
+        )
+
+    def tearDown(self):
+        self.auth_patch.stop()
+        super().tearDown()
+
+    def assertAsset1(self, results):
+        """
+        Assert that only the result set contains exactly the COMPLETE_ASSET.
+        :param results: test Assets result set.
+        """
+        result_get_dict = results.json()
+        self.assertTrue("results" in result_get_dict)
+        self.assertEqual(len(result_get_dict['results']), 1)
+        self.assertEqual(result_get_dict['results'][0]['name'], 'asset1')
+
+
+def patch_authenticate(return_value=None):
+    """Patch authentication's authenticate function."""
+    mock_authenticate = mock.MagicMock()
+    mock_authenticate.return_value = return_value
+
+    return mock.patch(
+        'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
+
+
 class SwaggerAPITest(TestCase):
+    """
+    Tests relating to the use of Swagger (OpenAPI)
+    """
     def test_security_definitions(self):
         """API spec should define an oauth2 security requirement."""
         spec = self.get_spec()
