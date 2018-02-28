@@ -18,4 +18,4 @@ ADD ./start-devserver.sh ./wait-for-it.sh /tmp/
 #
 # *DO NOT DEPLOY THIS TO PRODUCTION*
 ENV DJANGO_SETTINGS_MODULE lookupproxy.settings_developer
-ENTRYPOINT ["/tmp/wait-for-it.sh", "iar-db:5432", "--", "/tmp/start-devserver.sh"]
+ENTRYPOINT ["/tmp/wait-for-it.sh", "lookupproxy-db:5432", "--", "/tmp/start-devserver.sh"]
