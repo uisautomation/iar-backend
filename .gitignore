@@ -106,6 +106,7 @@ venv.bak/
 
 # Local configuration
 setupenv.sh
+iarbackend/settings/local.py
 
 # PyCharm
 .idea
