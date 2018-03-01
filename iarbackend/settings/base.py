@@ -45,6 +45,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # NB: this middleware only records the user signed in through the usual Django session. It does
+    # *not* record the user which is created from an OAuth2 token as part of the authentication for
+    # the API. We set this explicitly in the APIView in assets.views.
+    'automationcommon.middleware.RequestUserMiddleware',
 ]
 
 #: Root URL patterns

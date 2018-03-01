@@ -4,6 +4,8 @@ Views for the assets application.
 """
 import logging
 
+from automationcommon.models import set_local_user, clear_local_user
+
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils.decorators import method_decorator
@@ -154,6 +156,23 @@ class AssetViewSet(viewsets.ModelViewSet):
     # associated user) being allowed to view, create and edit any asset. As we move forward, we
     # need to decide on a better permissions model based on the (client, scope, user) triple.
     permission_classes = (HasScopesPermission,)
+
+    def initial(self, request, *args, **kwargs):
+        """Runs anything that needs to occur prior to calling the method handler."""
+        # Perform any authentication, permissions checking etc.
+        super().initial(request, *args, **kwargs)
+
+        # Set the local user for the auditing framework
+        set_local_user(request.user)
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        """
+        Returns the final response object.
+        """
+        # By this time the local user has been recorded if necessary.
+        clear_local_user()
+
+        return super().finalize_response(request, response, *args, **kwargs)
 
     def get_queryset(self):
         """get_queryset is patched to only return those assets that are not private or that are
