@@ -89,10 +89,13 @@ class UserInInstitutionPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        department = obj.department
-        if 'department' in request.data:
-            department = request.data['department']
-        return validate_asset_user_institution(request.user, department)
+        if not validate_asset_user_institution(request.user, obj.department):
+            return False
+        if 'department' in request.data and \
+                not validate_asset_user_institution(request.user, request.data['department']):
+            return False
+        return True
+
 
 def OrPermission(*args):
     """
@@ -100,7 +103,7 @@ def OrPermission(*args):
     :param args:
     :return:
     """
-    class OrPermission_:
+    class OrPermissionClass:
 
         def __init__(self):
             self.permissions = [Permission() for Permission in args]
@@ -118,9 +121,8 @@ def OrPermission(*args):
             """
             """
             for permission in self.permissions:
-                if permission.has_object_permission(request, view, obj):
+                if permission.has_permission(request, view) and permission.has_object_permission(request, view, obj):
                     return True
             return False
 
-    return OrPermission_
-
+    return OrPermissionClass

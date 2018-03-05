@@ -2,6 +2,7 @@
 Views for the assets application.
 """
 from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.response import Response
 
 from automationcommon.models import set_local_user, clear_local_user
 
@@ -154,6 +155,12 @@ class AssetViewSet(viewsets.ModelViewSet):
                                 cache.get("%s:lookup" % self.request.user.username,
                                           {'institutions': []})['institutions']))
         return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
+
+    def update(self, request, *args, **kwargs):
+        """We force a refresh after an update, so we can get the up to date annotation data."""
+        super(AssetViewSet, self).update(request, *args, **kwargs)
+
+        return Response(self.get_serializer(self.get_object()).data)
 
     def perform_destroy(self, instance):
         """perform_destroy patched to not delete the instance but instead flagged as deleted."""
