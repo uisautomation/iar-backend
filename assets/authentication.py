@@ -11,42 +11,14 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authentication import BaseAuthentication
 import requests.exceptions
-from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
+
+from .oauth2client import AuthenticatedSession
 
 
 LOG = logging.getLogger()
 
-
-def _get_session():
-    """
-    Get a :py:class:`requests.Session` object which is authenticated with the API application's
-    OAuth2 client credentials.
-
-    """
-    client = BackendApplicationClient(client_id=settings.ASSETS_OAUTH2_CLIENT_ID)
-    session = OAuth2Session(client=client)
-    session.fetch_token(
-        timeout=2, token_url=settings.ASSETS_OAUTH2_TOKEN_URL,
-        client_id=settings.ASSETS_OAUTH2_CLIENT_ID,
-        client_secret=settings.ASSETS_OAUTH2_CLIENT_SECRET,
-        scope=settings.ASSETS_OAUTH2_INTROSPECT_SCOPES)
-    return session
-
-
-def _request(*args, **kwargs):
-    """
-    A version of :py:func:`requests.request` which is authenticated with the OAuth2 token for the
-    API server's client credentials. If the token has timed out, it is requested again.
-
-    """
-    if getattr(_request, '__session', None) is None:
-        _request.__session = _get_session()
-    try:
-        return _request.__session.request(*args, **kwargs)
-    except TokenExpiredError:
-        _request.__session = _get_session()
-        return _request.__session.request(*args, **kwargs)
+#: An authenticated session which introspect tokens
+INTROSPECT_SESSION = AuthenticatedSession(scopes=settings.ASSETS_OAUTH2_INTROSPECT_SCOPES)
 
 
 _request.__session = None
@@ -132,8 +104,8 @@ class OAuth2TokenAuthentication(BaseAuthentication):
         A valid token must be active, be issued in the past and expire in the future.
 
         """
-        r = _request(method='POST', url=settings.ASSETS_OAUTH2_INTROSPECT_URL,
-                     timeout=2, data={'token': token})
+        r = INTROSPECT_SESSION.request(method='POST', url=settings.ASSETS_OAUTH2_INTROSPECT_URL,
+                                       timeout=2, data={'token': token})
         r.raise_for_status()
         token = r.json()
         if not token.get('active', False):

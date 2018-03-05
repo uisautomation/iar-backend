@@ -86,7 +86,7 @@ class OAuth2Test(TestCase):
 
         # Mock the internal cached session so that mocked_request() is called and then, if all is
         # working, a new session is obtained via the session patched by patch_oauth2_session.
-        cached_session_patch = mock.patch('assets.authentication._request.__session')
+        cached_session_patch = mock.patch('assets.authentication.INTROSPECT_SESSION._session')
 
         with cached_session_patch as cached_session, self.patch_oauth2_session():
             cached_session.request.side_effect = mocked_request
@@ -144,7 +144,7 @@ class OAuth2Test(TestCase):
         mock_get_session = mock.MagicMock()
         mock_get_session.return_value.request = mock_request
 
-        return mock.patch('assets.authentication.OAuth2Session', mock_get_session)
+        return mock.patch('assets.oauth2client.OAuth2Session', mock_get_session)
 
 
 def _utc_now():

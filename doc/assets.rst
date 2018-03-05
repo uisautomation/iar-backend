@@ -28,6 +28,9 @@ Views and serializers
 Authentication and permissions
 ``````````````````````````````
 
+.. automodule:: assets.oauth2client
+    :members:
+
 .. automodule:: assets.authentication
     :members:
 
