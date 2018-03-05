@@ -73,39 +73,44 @@ class UserInInstitutionPermissionTests(TestCase):
         cache.delete("%s:lookup" % self.user.username)
 
     def test_view_perms_true_for_all_except_POST(self):
-        """FIXME"""
+        """check that the view permission return true for all request methods expect POST"""
         for method in ('HEAD', 'OPTIONS', 'GET', 'PUT', 'PATCH', 'DELETE'):
             self.request.method = method
             self.assertTrue(self.has_permission())
 
     def test_view_perms_POST_department_not_set(self):
-        """FIXME"""
+        """
+        check the view permission raises an AssertionError when department is not part of a POST
+        """
         self.request.method = 'POST'
         self.assertRaises(AssertionError, self.has_permission)
 
     def test_view_perms_POST_no_cached_lookup(self):
-        """FIXME"""
+        """check the view permission is false when there is not cached lookup for the user"""
         cache.delete("%s:lookup" % self.user.username)
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())
 
     def test_view_perms_POST_no_institution_in_cached_lookup(self):
-        """FIXME"""
+        """check the view permission is false when the user's cached lookup has no institutions"""
         cache.set("%s:lookup" % self.user.username, {}, 120)
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())
 
     def test_view_perms_POST_user_not_in_TESTDEPT(self):
-        """FIXME"""
+        """check the view permission is false
+        when the user's isn't associated with the asset's department"""
         cache.set("%s:lookup" % self.user.username, {'institutions': [{'instid': 'OTHER'}]}, 120)
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())
 
     def test_view_perms_POST_true(self):
-        """FIXME"""
+        """
+        check the view permission is true when the user's is associated with the asset's department
+        """
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertTrue(self.has_permission())
@@ -141,19 +146,13 @@ class UserInInstitutionPermissionTests(TestCase):
         self.assertTrue(self.has_object_permission(Asset(department='UIS')))
 
     def has_permission(self):
-        """
-        Convenience method to return the has_permission() method value when evaluated on the
-        test's request and view instances.
-
-        """
+        """convenience method to return the has_permission() method value
+        when evaluated on the test's request"""
         return self.perm.has_permission(self.request, None)
 
     def has_object_permission(self, obj):
-        """
-        Convenience method to return the has_permission() method value when evaluated on the
-        test's request and view instances.
-
-        """
+        """convenience method to return the has_object_permission() method value
+        when evaluated on the test's request and object"""
         return (
             self.perm.has_permission(self.request, None) and
             self.perm.has_object_permission(self.request, None, obj)
@@ -163,8 +162,9 @@ class UserInInstitutionPermissionTests(TestCase):
 class OrPermissionTests(TestCase):
 
     def test_view_perms(self):
-
+        """Test all combinations of two OR'd classes for the view permissions"""
         cases = (
+            # 0 = A.has_permission(), 1 = B.has_permission(), 2 = expected result
             (False, False, False),
             (False, True, True),
             (True, False, True),
@@ -181,8 +181,11 @@ class OrPermissionTests(TestCase):
             self.assertEqual(permissions.OrPermission(A, B)().has_permission(None, None), case[2])
 
     def test_object_perms(self):
-
+        """Test all combinations of two OR'd classes for the object permissions"""
         cases = (
+            # 0 = A.has_permission(), 1 = A.has_object_permission(),
+            # 2 = B.has_permission(), 3 = B.has_object_permission(),
+            # 4 = expected result
             (False, False, False, False, False),
             (False, False, False, True, False),
             (False, False, True, False, False),

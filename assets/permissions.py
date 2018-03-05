@@ -32,95 +32,104 @@ class HasScopesPermission(permissions.BasePermission):
         return required_scopes <= granted_scopes
 
 
-def validate_asset_user_institution(user=None, department=None):
-    """Validates that the user is member of the department that the asset belongs to
-    (asset_department). raises PermissionDenied if it doesn't, passes otherwise."""
-
-    if user is None or department is None:
-        return False
-
-    lookup_response = cache.get("{user.username}:lookup".format(user=user))
-    if lookup_response is None:
-        LOG.error('No cached lookup response for user %s', user.username)
-        return False
-
-    institutions = lookup_response.get('institutions')
-    if institutions is None:
-        LOG.error('No institutions in cached lookup response for user %s', user.username)
-        return False
-
-    institutions = map(lambda inst: inst['instid'],
-                       lookup_response.get('institutions', []))
-    if department not in institutions:
-        return False
-
-    return True
-
-
 class UserInInstitutionPermission(permissions.BasePermission):
     """
-
+    Django REST framework permission which requires that the user acting on an asset be associated
+    with the department that the asset belongs to.
     """
     def has_permission(self, request, view):
         """
-        POST
-        :param request:
-        :param view:
-        :return:
+        When a new asset is created check that the user is associated with the given department.
         """
 
-        # ????
+        # PUT, PATCH, and DELETE should return true here
+        # otherwise has_object_permission() will never be called.
         if request.method != 'POST':
             return True
 
         assert 'department' in request.data, "the department is required"
 
-        # Check permissions for write request
-        return validate_asset_user_institution(request.user, request.data['department'])
+        return self.validate_asset_user_institution(request.user, request.data['department'])
 
     def has_object_permission(self, request, view, obj):
         """
-        PUT PATCH DELETE
-        :param request:
-        :param view:
-        :param obj:
-        :return:
+        When a new asset is changed/deleted
+        check that the user is associated with the department of the existing asset
+        AND (in the case of changed) is also associated with the given department.
         """
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if not validate_asset_user_institution(request.user, obj.department):
+        if not self.validate_asset_user_institution(request.user, obj.department):
             return False
+        # in the case of PATCH, department may not have have been given
         if 'department' in request.data and \
-                not validate_asset_user_institution(request.user, request.data['department']):
+                not self.validate_asset_user_institution(request.user, request.data['department']):
             return False
+        return True
+
+    @staticmethod
+    def validate_asset_user_institution(user=None, department=None):
+        """Validates that the user is member of the department that the asset belongs to
+        (asset_department)."""
+        if user is None or department is None:
+            return False
+
+        lookup_response = cache.get("{user.username}:lookup".format(user=user))
+        if lookup_response is None:
+            LOG.error('No cached lookup response for user %s', user.username)
+            return False
+
+        institutions = lookup_response.get('institutions')
+        if institutions is None:
+            LOG.error('No institutions in cached lookup response for user %s', user.username)
+            return False
+
+        institutions = map(lambda inst: inst['instid'],
+                           lookup_response.get('institutions', []))
+        if department not in institutions:
+            return False
+
         return True
 
 
 def OrPermission(*args):
     """
-    FIXME
-    :param args:
-    :return:
+    This is a function posing as a class. An example of it's intended usage is
+
+         :
+        permission_classes = (OrPermission(A, B), )
+         :
+
+    where A & B are both class that extend from BasePermission. The function returns a class that,
+    when instantiated authorise a request when either A or B authorise that request.
+
+    :param args: a tuple of BasePermission subclasses
+    :return: a OrPermissionClass closure
     """
     class OrPermissionClass(permissions.BasePermission):
 
         def __init__(self):
+            # instantiate each permission class
             self.permissions = [Permission() for Permission in args]
             # check that all given permissions inherit from BasePermission
             for permission in self.permissions:
                 assert issubclass(type(permission), permissions.BasePermission)
 
         def has_permission(self, request, view):
-            """
-            """
+            """is true when has_permission() for any of the permissions is true"""
             for permission in self.permissions:
                 if permission.has_permission(request, view):
                     return True
             return False
 
         def has_object_permission(self, request, view, obj):
-            """
+            """This is true when BOTH has_permission() AND has_object_permission()
+            for any of the permissions is true.
+            This is important because of the case where X.has_permission() returns false
+            but X.has_object_permission() has been left unimplemented and thus returns true.
+            This in combination with Y.has_permission() = true and
+            Y.has_object_permission() = false would otherwise return true incorrectly.
             """
             for permission in self.permissions:
                 if permission.has_permission(request, view) \
