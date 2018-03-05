@@ -2,18 +2,22 @@
 Test custom DRF permissions
 
 """
+from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
+from django.core.cache import cache
+from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
 from assets import permissions
+from assets.models import Asset
 
 
-class HasScopesTest(TestCase):
+class HasScopesPermissionTests(TestCase):
     def setUp(self):
         # Create a mock incoming request and view
         self.request = Request(HttpRequest())
-        self.view = HasScopesTest.MockView()
+        self.view = HasScopesPermissionTests.MockView()
         self.perm = permissions.HasScopesPermission()
 
     def test_requires_auth(self):
@@ -50,3 +54,167 @@ class HasScopesTest(TestCase):
     class MockView:
         """A mock view class which defines two required scopes."""
         required_scopes = ['SCOPEA', 'SCOPEB']
+
+
+class UserInInstitutionPermissionTests(TestCase):
+
+    def setUp(self):
+        # Create a mock incoming request and view
+        self.request = Request(HttpRequest())
+        self.perm = permissions.UserInInstitutionPermission()
+
+        # By default, authentication succeeds
+        self.user = get_user_model().objects.create_user(username="test0001")
+        self.request.user = self.user
+
+        cache.set("%s:lookup" % self.user.username, {'institutions': [{'instid': 'UIS'}]}, 120)
+
+    def tearDown(self):
+        cache.delete("%s:lookup" % self.user.username)
+
+    def test_view_perms_true_for_all_except_POST(self):
+        """FIXME"""
+        for method in ('HEAD', 'OPTIONS', 'GET', 'PUT', 'PATCH', 'DELETE'):
+            self.request.method = method
+            self.assertTrue(self.has_permission())
+
+    def test_view_perms_POST_department_not_set(self):
+        """FIXME"""
+        self.request.method = 'POST'
+        self.assertRaises(AssertionError, self.has_permission)
+
+    def test_view_perms_POST_no_cached_lookup(self):
+        """FIXME"""
+        cache.delete("%s:lookup" % self.user.username)
+        self.request.method = 'POST'
+        self.request.data['department'] = 'UIS'
+        self.assertFalse(self.has_permission())
+
+    def test_view_perms_POST_no_institution_in_cached_lookup(self):
+        """FIXME"""
+        cache.set("%s:lookup" % self.user.username, {}, 120)
+        self.request.method = 'POST'
+        self.request.data['department'] = 'UIS'
+        self.assertFalse(self.has_permission())
+
+    def test_view_perms_POST_user_not_in_TESTDEPT(self):
+        """FIXME"""
+        cache.set("%s:lookup" % self.user.username, {'institutions': [{'instid': 'OTHER'}]}, 120)
+        self.request.method = 'POST'
+        self.request.data['department'] = 'UIS'
+        self.assertFalse(self.has_permission())
+
+    def test_view_perms_POST_true(self):
+        """FIXME"""
+        self.request.method = 'POST'
+        self.request.data['department'] = 'UIS'
+        self.assertTrue(self.has_permission())
+
+    def test_object_perms_true_for_HEAD_OPTIONS_GET(self):
+        """FIXME"""
+        for method in ('HEAD', 'OPTIONS', 'GET'):
+            self.request.method = method
+            self.assertTrue(self.has_object_permission(None))
+
+    def test_object_perms_user_not_in_OTHER(self):
+        """FIXME"""
+        self.request.method = 'PATCH'
+        self.request.data['department'] = 'UIS'
+        self.assertFalse(self.has_object_permission(Asset(department='OTHER')))
+
+    def test_object_perms_user_cant_change_to_OTHER(self):
+        """FIXME"""
+        self.request.method = 'PATCH'
+        self.request.data['department'] = 'OTHER'
+        self.assertFalse(self.has_object_permission(Asset(department='UIS')))
+
+    def test_object_perms_user_can_change(self):
+        """FIXME"""
+        self.request.method = 'PATCH'
+        self.request.data['department'] = 'UIS'
+        self.request.data['name'] = 'new name'
+        self.assertTrue(self.has_object_permission(Asset(department='UIS')))
+
+    def test_object_perms_user_can_delete(self):
+        """FIXME"""
+        self.request.method = 'DELETE'
+        self.assertTrue(self.has_object_permission(Asset(department='UIS')))
+
+    def has_permission(self):
+        """
+        Convenience method to return the has_permission() method value when evaluated on the
+        test's request and view instances.
+
+        """
+        return self.perm.has_permission(self.request, None)
+
+    def has_object_permission(self, obj):
+        """
+        Convenience method to return the has_permission() method value when evaluated on the
+        test's request and view instances.
+
+        """
+        return (
+            self.perm.has_permission(self.request, None) and
+            self.perm.has_object_permission(self.request, None, obj)
+        )
+
+
+class OrPermissionTests(TestCase):
+
+    def test_view_perms(self):
+
+        cases = (
+            (False, False, False),
+            (False, True, True),
+            (True, False, True),
+            (True, True, True),
+        )
+        for case in cases:
+            class A(BasePermission):
+                def has_permission(self, request, view):
+                    return case[0]
+
+            class B(BasePermission):
+                def has_permission(self, request, view):
+                    return case[1]
+            self.assertEqual(permissions.OrPermission(A, B)().has_permission(None, None), case[2])
+
+    def test_object_perms(self):
+
+        cases = (
+            (False, False, False, False, False),
+            (False, False, False, True, False),
+            (False, False, True, False, False),
+            (False, True, False, False, False),
+            (False, True, False, True, False),
+            (False, True, True, False, False),
+            (False, True, True, True, True),
+            (True, False, False, False, False),
+            (True, False, False, True, False),
+            (True, False, True, False, False),
+            (True, True, False, False, True),
+            (True, True, False, True, True),
+            (True, True, True, False, True),
+            (True, True, True, True, True),
+        )
+        for case in cases:
+            class A(BasePermission):
+                def has_permission(self, request, view):
+                    return case[0]
+
+                def has_object_permission(self, request, view, obj):
+                    return case[1]
+
+            class B(BasePermission):
+                def has_permission(self, request, view):
+                    return case[2]
+
+                def has_object_permission(self, request, view, obj):
+                    return case[3]
+
+            perm = permissions.OrPermission(A, B)()
+            self.assertEqual(
+                perm.has_permission(None, None) and perm.has_object_permission(None, None, None),
+                case[4]
+            )

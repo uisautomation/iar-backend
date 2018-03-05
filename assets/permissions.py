@@ -73,7 +73,7 @@ class UserInInstitutionPermission(permissions.BasePermission):
         if request.method != 'POST':
             return True
 
-        assert 'department' in request.data
+        assert 'department' in request.data, "the department is required"
 
         # Check permissions for write request
         return validate_asset_user_institution(request.user, request.data['department'])
@@ -103,11 +103,13 @@ def OrPermission(*args):
     :param args:
     :return:
     """
-    class OrPermissionClass:
+    class OrPermissionClass(permissions.BasePermission):
 
         def __init__(self):
             self.permissions = [Permission() for Permission in args]
-            pass
+            # check that all given permissions inherit from BasePermission
+            for permission in self.permissions:
+                assert issubclass(type(permission), permissions.BasePermission)
 
         def has_permission(self, request, view):
             """
@@ -121,7 +123,8 @@ def OrPermission(*args):
             """
             """
             for permission in self.permissions:
-                if permission.has_permission(request, view) and permission.has_object_permission(request, view, obj):
+                if permission.has_permission(request, view) \
+                        and permission.has_object_permission(request, view, obj):
                     return True
             return False
 

@@ -127,7 +127,8 @@ class AssetViewSet(viewsets.ModelViewSet):
     # Currently there are extremely permissive permissions with any valid token (even ones with no
     # associated user) being allowed to view, create and edit any asset. As we move forward, we
     # need to decide on a better permissions model based on the (client, scope, user) triple.
-    permission_classes = (HasScopesPermission, OrPermission(DjangoModelPermissions, UserInInstitutionPermission))
+    permission_classes = (HasScopesPermission,
+                          OrPermission(DjangoModelPermissions, UserInInstitutionPermission))
 
     def initial(self, request, *args, **kwargs):
         """Runs anything that needs to occur prior to calling the method handler."""
