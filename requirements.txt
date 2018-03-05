@@ -9,13 +9,13 @@ git+https://github.com/uisautomation/django-automationcommon.git@master#egg=djan
 django-ucamwebauth>=1.4.7
 django-multiselectfield
 djangorestframework
+django-cors-headers
+drf-yasg[validation]
+django-filter
 #django rest framework documentation dependencies
 coreapi
 pygments
 markdown
-django-cors-headers
-drf-yasg[validation]
-django-filter
 
 # For managing OAuth2 tokens
 oauthlib
