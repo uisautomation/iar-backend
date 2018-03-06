@@ -66,8 +66,8 @@ class UserInInstitutionPermission(permissions.BasePermission):
         if not self._validate_asset_user_institution(request.user, obj.department):
             return False
         # in the case of PATCH, department may not have have been given
-        if 'department' in request.data and \
-                not self._validate_asset_user_institution(request.user, request.data['department']):
+        if 'department' in request.data and not \
+                self._validate_asset_user_institution(request.user, request.data['department']):
             return False
         return True
 
