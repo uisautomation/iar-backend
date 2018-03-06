@@ -100,7 +100,7 @@ class OAuth2TokenAuthentication(BaseAuthentication):
             except ObjectDoesNotExist:
                 user = get_user_model().objects.create_user(username=username)
 
-            if cache.get("{user.username}:lookup".format(user=user)) is None:
+            if cache.get(f"{user.username}:lookup") is None:
                 # Adding 10 extra seconds to the expiry so that if the API requests takes long
                 # the cache doesn't get expired between the authentication and the response
                 lookup_response = requests.get(
@@ -112,7 +112,7 @@ class OAuth2TokenAuthentication(BaseAuthentication):
                     lookup_response.raise_for_status()
 
                     # Cache the response body as parsed JSON
-                    cache.set("{user.username}:lookup".format(user=user), lookup_response.json(),
+                    cache.set(f"{user.username}:lookup", lookup_response.json(),
                               datetime.timedelta(token['exp'] - _utc_now()).seconds+10)
                 except requests.exceptions.HTTPError as error:
                     LOG.error(

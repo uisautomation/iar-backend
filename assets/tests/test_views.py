@@ -13,15 +13,16 @@ from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
 from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 
-LOOKUP_RESPONSE_FIXTURE = {
+LOOKUP_RESPONSE = {
     'institutions': [{
         'url': 'http://lookupproxy:8080/institutions/TESTDEPT', 'acronym': None,
         'cancelled': False, 'instid': 'TESTDEPT', 'name': 'Test Department'
     }],
-    'group': [{
+    'groups': [{
         'name': IAR_USERS_LOOKUP_GROUP
     }],
 }
+
 
 class APIViewsTests(TestCase):
     def setUp(self):
@@ -34,7 +35,7 @@ class APIViewsTests(TestCase):
         self.user = get_user_model().objects.create_user(username="test0001")
         self.refresh_user()
 
-        cache.set("%s:lookup" % self.user.username, LOOKUP_RESPONSE_FIXTURE, 120)
+        cache.set(f"{self.user.username}:lookup", LOOKUP_RESPONSE)
 
     def tearDown(self):
         self.auth_patch.stop()
@@ -218,17 +219,19 @@ class APIViewsTests(TestCase):
         list_assets = client.get('/assets/', format='json')
         self.assertNotEqual(list_assets.json()['results'], [])
 
-        cache.set("%s:lookup" % self.user.username,
-                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/UIS',
-                                     'acronym': None, 'cancelled': False, 'instid': 'UIS',
-                                     'name': 'University Information Services'}]}, 120)
+        cache.set(
+            f"{self.user.username}:lookup",
+            {
+                **LOOKUP_RESPONSE,
+                'institutions': [{**LOOKUP_RESPONSE['institutions'][0], 'instid': 'UIS'}]
+            }
+        )
 
         result_delete = client.delete(result_post.json()['url'])
         # User's institution doesn't match asset institution
         self.assertEqual(result_delete.status_code, 403)
 
-        cache.delete("%s:lookup" % self.user.username)
-        cache.set("%s:lookup" % self.user.username, LOOKUP_RESPONSE_FIXTURE, 120)
+        cache.set(f"{self.user.username}:lookup", LOOKUP_RESPONSE)
         result_delete = client.delete(result_post.json()['url'])
         # User's institution match asset institution
         self.assertEqual(result_delete.status_code, 204)
@@ -252,10 +255,13 @@ class APIViewsTests(TestCase):
         asset = Asset.objects.get(pk=result_post.json()['id'])
         self.assertIsNone(asset.deleted_at)
 
-        cache.set("%s:lookup" % self.user.username,
-                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/UIS',
-                                     'acronym': None, 'cancelled': False, 'instid': 'UIS',
-                                     'name': 'University Information Services'}]}, 120)
+        cache.set(
+            f"{self.user.username}:lookup",
+            {
+                **LOOKUP_RESPONSE,
+                'institutions': [{**LOOKUP_RESPONSE['institutions'][0], 'instid': 'UIS'}]
+            }
+        )
 
         # Initially fails
         result_delete = client.delete(result_post.json()['url'])

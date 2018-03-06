@@ -16,6 +16,8 @@ from django_filters.rest_framework import (
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
+
+from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import HasScopesPermission, UserInInstitutionPermission, OrPermission, AndPermission, \
@@ -152,11 +154,22 @@ class AssetViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """get_queryset is patched to only return those assets that are not private or that are
         prive but the user doing the request belongs to department that owns the asset."""
+
+        lookup_response = cache.get(
+            f"{self.request.user.username}:lookup", {'institutions': [], 'groups':[]}
+        )
+
+        in_iar_group = [
+            group for group in lookup_response['groups'] if group['name'] == IAR_USERS_LOOKUP_GROUP
+        ]
+
+        if not in_iar_group:
+            return Asset.objects.none()
+
         queryset = super(AssetViewSet, self).get_queryset()
 
-        institutions = list(map(lambda inst: inst['instid'],
-                                cache.get("%s:lookup" % self.request.user.username,
-                                          {'institutions': []})['institutions']))
+        institutions = [institution['instid'] for institution in lookup_response['institutions']]
+
         return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
 
     def update(self, request, *args, **kwargs):
