@@ -348,6 +348,29 @@ class APIViewsTests(TestCase):
         result_post = client.post('/assets/', asset_dict, format='json')
         self.assertEqual(result_post.status_code, 201)
 
+    def test_iar_users_group_membership(self):
+        """check that the user can do/see nothing if they aren't in uis-iar-users"""
+        client = APIClient()
+
+        # remove group membership
+        cache.set(f"{self.user.username}:lookup", {**LOOKUP_RESPONSE, 'groups': []})
+
+        # create a asset
+        asset = Asset.objects.create(**COMPLETE_ASSET)
+        asset_url = '/assets/%s/' % asset.pk
+
+        # test no assets are listed
+        self.assertEqual(client.get('/assets/', format='json').json()['results'], [])
+
+        # test single asset isn't visible
+        self.assertEqual(client.get(asset_url).status_code, 404)
+
+        # test all change operations fail with 403
+        self.assertEqual(client.post('/assets/', COMPLETE_ASSET, format='json').status_code, 403)
+        self.assertEqual(client.put(asset_url, COMPLETE_ASSET, format='json').status_code, 403)
+        self.assertEqual(client.patch(asset_url, {'name': 'new'}, format='json').status_code, 403)
+        self.assertEqual(client.delete(asset_url).status_code, 403)
+
     def refresh_user(self):
         """Refresh user from the database."""
         self.user = get_user_model().objects.get(pk=self.user.pk)
