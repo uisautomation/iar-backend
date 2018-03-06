@@ -1,8 +1,8 @@
 """
 Views for the assets application.
-
 """
-import logging
+from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.response import Response
 
 from automationcommon.models import set_local_user, clear_local_user
 
@@ -15,16 +15,11 @@ from django_filters.rest_framework import (
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.response import Response
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
-from .permissions import HasScopesPermission
+from .permissions import HasScopesPermission, UserInInstitutionPermission, OrPermission
 from .serializers import AssetSerializer
-
-
-LOG = logging.getLogger()
 
 
 # Scopes required to access asset register.
@@ -42,29 +37,6 @@ SCHEMA_DECORATOR = swagger_auto_schema(operation_security=[{'oauth2': REQUIRED_S
 Decorator to apply to DRF methods which sets the appropriate security requirements.
 
 """
-
-
-def validate_asset_user_institution(user=None, asset_department=None):
-    """Validates that the user is member of the department that the asset belongs to
-    (asset_department). raises PermissionDenied if it doesn't, passes otherwise."""
-
-    if user is None or asset_department is None:
-        raise PermissionDenied
-
-    lookup_response = cache.get("{user.username}:lookup".format(user=user))
-    if lookup_response is None:
-        LOG.error('No cached lookup response for user %s', user.username)
-        raise PermissionDenied
-
-    institutions = lookup_response.get('institutions')
-    if institutions is None:
-        LOG.error('No institutions in cached lookup response for user %s', user.username)
-        raise PermissionDenied
-
-    institutions = map(lambda inst: inst['instid'],
-                       lookup_response.get('institutions', []))
-    if asset_department not in institutions:
-        raise PermissionDenied
 
 
 class AssetFilter(FilterSet):
@@ -151,11 +123,8 @@ class AssetViewSet(viewsets.ModelViewSet):
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES
 
-    # TODO:
-    # Currently there are extremely permissive permissions with any valid token (even ones with no
-    # associated user) being allowed to view, create and edit any asset. As we move forward, we
-    # need to decide on a better permissions model based on the (client, scope, user) triple.
-    permission_classes = (HasScopesPermission,)
+    permission_classes = (HasScopesPermission,
+                          OrPermission(DjangoModelPermissions, UserInInstitutionPermission))
 
     def initial(self, request, *args, **kwargs):
         """Runs anything that needs to occur prior to calling the method handler."""
@@ -184,37 +153,10 @@ class AssetViewSet(viewsets.ModelViewSet):
                                           {'institutions': []})['institutions']))
         return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
 
-    def create(self, request, *args, **kwargs):
-        """create is patched to check that a user can only create a new asset with department
-        equals to one of the departments the user belongs to."""
-        # Only perform validation if user does not already have the create asset permission
-        if not request.user.has_perm('assets.add_asset'):
-            validate_asset_user_institution(request.user,
-                                            request.data['department']
-                                            if 'department' in request.data else None)
-        return super(AssetViewSet, self).create(request, *args, **kwargs)
-
     def update(self, request, *args, **kwargs):
-        """update is patched so that only allows users to modify assets that belong to one of
-        their departments. Or that when they update a department, the new department is one that
-        they belong to."""
-
-        # Only perform permission check if user does not already have the change_asset perm
-        if not request.user.has_perm('assets.change_asset'):
-            partial = kwargs.get('partial', False)
-            instance = self.get_object()
-            validate_asset_user_institution(request.user, instance.department)
-            if partial:
-                if 'department' in request.data:
-                    validate_asset_user_institution(request.user, request.data['department'])
-            else:
-                validate_asset_user_institution(request.user,
-                                                request.data['department']
-                                                if 'department' in request.data else None)
-
+        """We force a refresh after an update, so we can get the up to date annotation data."""
         super(AssetViewSet, self).update(request, *args, **kwargs)
 
-        # We force a refresh after an update, so we can get the up to date annotation data
         return Response(self.get_serializer(self.get_object()).data)
 
     def perform_destroy(self, instance):
@@ -222,15 +164,3 @@ class AssetViewSet(viewsets.ModelViewSet):
         if instance.deleted_at is None:
             instance.deleted_at = now()
             instance.save()
-
-    def destroy(self, request, *args, **kwargs):
-        """destroy is patched to check that a user can only delete an asset belonging to a
-        department tha the user belongs to."""
-        instance = self.get_object()
-
-        # Only enforce the permission check if the user does not explicitly have the "delete asll
-        # assets" permission.
-        if not request.user.has_perm('assets.delete_asset'):
-            validate_asset_user_institution(request.user, instance.department)
-
-        return super(AssetViewSet, self).destroy(request, *args, **kwargs)

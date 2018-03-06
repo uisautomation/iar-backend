@@ -49,6 +49,9 @@ def _request(*args, **kwargs):
         return _request.__session.request(*args, **kwargs)
 
 
+_request.__session = None
+
+
 def _utc_now():
     """Return a UNIX-style timestamp representing "now" in UTC."""
     return (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds()
@@ -141,12 +144,12 @@ class OAuth2TokenAuthentication(BaseAuthentication):
 
         if token['iat'] > now:
             LOG.warning('Rejecting token with "iat" in the future: %s with now = %s"',
-                        (token['iat'], now))
+                        token['iat'], now)
             return None
 
         if token['exp'] < now:
             LOG.warning('Rejecting token with "exp" in the past: %s with now = %s"',
-                        (token['exp'], now))
+                        token['exp'], now)
             return None
 
         # HACK: lookup:anonymous is required for the moment since we make use of the token/self

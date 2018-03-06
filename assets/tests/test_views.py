@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 from assets.models import Asset
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
+from automationcommon.models import set_local_user
 
 
 class APIViewsTests(TestCase):
@@ -148,6 +149,7 @@ class APIViewsTests(TestCase):
         # We fix the department, so now the user should be allow but we try to change the
         # department to another that the user doesn't belong to
         asset.department = 'TESTDEPT'
+        set_local_user(self.user)
         asset.save()
         result_patch = client.patch('/assets/%s/' % asset.pk, {"department": "TESTDEPT2"})
         self.assertEqual(result_patch.status_code, 403)
@@ -171,6 +173,7 @@ class APIViewsTests(TestCase):
         # We fix the department, so now the user should be allow but we try to change the
         # department to another that the user doesn't belong to
         asset.department = 'TESTDEPT'
+        set_local_user(self.user)
         asset.save()
         result_put = client.put('/assets/%s/' % asset.pk, asset_dict)
         self.assertEqual(result_put.status_code, 403)
