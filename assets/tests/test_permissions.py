@@ -73,7 +73,7 @@ class UserInInstitutionPermissionTests(TestCase):
         cache.delete("%s:lookup" % self.user.username)
 
     def test_view_perms_true_for_all_except_POST(self):
-        """check that the view permission return true for all request methods expect POST"""
+        """check that the view permission returns true for all request methods expect POST"""
         for method in ('HEAD', 'OPTIONS', 'GET', 'PUT', 'PATCH', 'DELETE'):
             self.request.method = method
             self.assertTrue(self.has_permission())
@@ -109,39 +109,45 @@ class UserInInstitutionPermissionTests(TestCase):
 
     def test_view_perms_POST_true(self):
         """
-        check the view permission is true when the user's is associated with the asset's department
+        check the view permission is true when the user is associated with the asset's department
         """
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertTrue(self.has_permission())
 
     def test_object_perms_true_for_HEAD_OPTIONS_GET(self):
-        """FIXME"""
+        """
+        check that the object permission returns true for request methods HEAD, OPTIONS, and GET
+        """
         for method in ('HEAD', 'OPTIONS', 'GET'):
             self.request.method = method
             self.assertTrue(self.has_object_permission(None))
 
     def test_object_perms_user_not_in_OTHER(self):
-        """FIXME"""
+        """check that the object permission is false when
+        the user isn't associated with the existing asset's department"""
         self.request.method = 'PATCH'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_object_permission(Asset(department='OTHER')))
 
     def test_object_perms_user_cant_change_to_OTHER(self):
-        """FIXME"""
+        """check that the object permission is false when
+        the user isn't associated with the asset's updated department"""
         self.request.method = 'PATCH'
         self.request.data['department'] = 'OTHER'
         self.assertFalse(self.has_object_permission(Asset(department='UIS')))
 
     def test_object_perms_user_can_change(self):
-        """FIXME"""
+        """check that the object permission is true when
+        the user is associated with the asset's existing and updated department"""
         self.request.method = 'PATCH'
         self.request.data['department'] = 'UIS'
         self.request.data['name'] = 'new name'
         self.assertTrue(self.has_object_permission(Asset(department='UIS')))
 
     def test_object_perms_user_can_delete(self):
-        """FIXME"""
+        """check that the object permission is true when
+        the user is associated with the asset's existing but no updated department is given"""
         self.request.method = 'DELETE'
         self.assertTrue(self.has_object_permission(Asset(department='UIS')))
 
@@ -189,6 +195,7 @@ class OrPermissionTests(TestCase):
             (False, False, False, False, False),
             (False, False, False, True, False),
             (False, False, True, False, False),
+            (False, False, True, True, True),
             (False, True, False, False, False),
             (False, True, False, True, False),
             (False, True, True, False, False),
@@ -196,6 +203,7 @@ class OrPermissionTests(TestCase):
             (True, False, False, False, False),
             (True, False, False, True, False),
             (True, False, True, False, False),
+            (True, False, True, True, True),
             (True, True, False, False, True),
             (True, True, False, True, True),
             (True, True, True, False, True),
