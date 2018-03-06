@@ -37,6 +37,12 @@ Authentication and permissions
 .. automodule:: assets.permissions
     :members:
 
+Interaction with lookup
+```````````````````````
+
+.. automodule:: assets.lookup
+    :members:
+
 Extensions to drf-yasg
 ``````````````````````
 

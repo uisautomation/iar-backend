@@ -4,14 +4,12 @@ OAuth2 authentication for Django REST Framework views.
 """
 import datetime
 import logging
-import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authentication import BaseAuthentication
-import requests.exceptions
 
+from .models import UserLookup
 from .oauth2client import AuthenticatedSession
 
 
@@ -19,9 +17,6 @@ LOG = logging.getLogger()
 
 #: An authenticated session which introspect tokens
 INTROSPECT_SESSION = AuthenticatedSession(scopes=settings.ASSETS_OAUTH2_INTROSPECT_SCOPES)
-
-
-_request.__session = None
 
 
 def _utc_now():
@@ -59,38 +54,7 @@ class OAuth2TokenAuthentication(BaseAuthentication):
         subject = token.get('sub', '')
 
         if subject != '':
-            # Our subjects are of the form '<scheme>:<identifier>'. Form a valid Django username
-            # from these values.
-            scheme, identifier = subject.split(':')
-            username = '{}+{}'.format(scheme, identifier)
-
-            # This is not quite the same as the default get_or_create() behaviour because we make
-            # use of the create_user() helper here. This ensures the user is created and that
-            # set_unusable_password() is also called on it.
-            try:
-                user = get_user_model().objects.get(username=username)
-            except ObjectDoesNotExist:
-                user = get_user_model().objects.create_user(username=username)
-
-            if cache.get("{user.username}:lookup".format(user=user)) is None:
-                # Adding 10 extra seconds to the expiry so that if the API requests takes long
-                # the cache doesn't get expired between the authentication and the response
-                lookup_response = requests.get(
-                    settings.LOOKUP_SELF + "?fetch=all_insts,all_groups",
-                    headers={"Authorization": "Bearer %s" % bearer})
-
-                try:
-                    # Ensure the response succeeded
-                    lookup_response.raise_for_status()
-
-                    # Cache the response body as parsed JSON
-                    cache.set("{user.username}:lookup".format(user=user), lookup_response.json(),
-                              datetime.timedelta(token['exp'] - _utc_now()).seconds+10)
-                except requests.exceptions.HTTPError as error:
-                    LOG.error(
-                        ('HTTP Error {error} retrieving institutions for user "{user.username}" '
-                         'with subject {subject}').format(error=error, user=user, subject=subject))
-                    LOG.error('Payload was: {}'.format(lookup_response.content))
+            user = user_from_subject(subject)
         else:
             user = None
 
@@ -124,14 +88,6 @@ class OAuth2TokenAuthentication(BaseAuthentication):
                         token['exp'], now)
             return None
 
-        # HACK: lookup:anonymous is required for the moment since we make use of the token/self
-        # lookupproxy endpoint *and* we do so using the bearer token provided to the backend by the
-        # user. TODO: refactor this to use the lookupproxy as the backend client.
-        if 'lookup:anonymous' not in token.get('scope', '').split(' '):
-            LOG.warning(
-                'Presented bearer token with no lookup:anonymous scope. Permissions checking '
-                'will be broken.')
-
         return token
 
     def authenticate_header(self, request):
@@ -140,3 +96,29 @@ class OAuth2TokenAuthentication(BaseAuthentication):
 
         """
         return 'Bearer'
+
+
+def user_from_subject(subject):
+    """
+    Return a Django user object given a token subject.
+
+    """
+    # Our subjects are of the form '<scheme>:<identifier>'. Form a valid Django username
+    # from these values.
+    scheme, identifier = subject.split(':')
+    username = '{}+{}'.format(scheme, identifier)
+
+    # This is not quite the same as the default get_or_create() behaviour because we make
+    # use of the create_user() helper here. This ensures the user is created and that
+    # set_unusable_password() is also called on it.
+    try:
+        user = get_user_model().objects.get(username=username)
+    except ObjectDoesNotExist:
+        user = get_user_model().objects.create_user(username=username)
+
+    # Record this association of user, subject and lookup identity in the DB. Since the user is
+    # marked as the primary key field, this will throw a database error if there is an existing
+    # record with differing scheme and identifier.
+    UserLookup.objects.get_or_create(user=user, scheme=scheme, identifier=identifier)
+
+    return user

@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
-from assets.models import Asset
+from assets.models import Asset, UserLookup
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
@@ -22,6 +22,8 @@ class APIViewsTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
         self.refresh_user()
 
         cache.set("%s:lookup" % self.user.username,
@@ -432,6 +434,9 @@ class AssetFilterTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
+
         self.mock_authenticate.return_value = (self.user, {'scope': ' '.join(REQUIRED_SCOPES)})
 
         self.client = APIClient()
