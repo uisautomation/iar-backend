@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
 from django.core.cache import cache
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
@@ -80,10 +81,10 @@ class UserInInstitutionPermissionTests(TestCase):
 
     def test_view_perms_POST_department_not_set(self):
         """
-        check the view permission raises an AssertionError when department is not part of a POST
+        check the view permission raises an ValidationError when department is not part of a POST
         """
         self.request.method = 'POST'
-        self.assertRaises(AssertionError, self.has_permission)
+        self.assertRaises(ValidationError, self.has_permission)
 
     def test_view_perms_POST_no_cached_lookup(self):
         """check the view permission is false when there is not cached lookup for the user"""

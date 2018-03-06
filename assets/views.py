@@ -123,10 +123,6 @@ class AssetViewSet(viewsets.ModelViewSet):
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES
 
-    # TODO:
-    # Currently there are extremely permissive permissions with any valid token (even ones with no
-    # associated user) being allowed to view, create and edit any asset. As we move forward, we
-    # need to decide on a better permissions model based on the (client, scope, user) triple.
     permission_classes = (HasScopesPermission,
                           OrPermission(DjangoModelPermissions, UserInInstitutionPermission))
 

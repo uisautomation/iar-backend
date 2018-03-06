@@ -6,9 +6,9 @@ import logging
 
 from django.core.cache import cache
 from rest_framework import permissions
+from rest_framework.exceptions import ValidationError
 
-
-LOG = logging.getLogger()
+LOG = logging.getLogger(__name__)
 
 
 class HasScopesPermission(permissions.BasePermission):
@@ -47,9 +47,11 @@ class UserInInstitutionPermission(permissions.BasePermission):
         if request.method != 'POST':
             return True
 
-        assert 'department' in request.data, "the department is required"
+        department = request.data.get('department')
+        if not department:
+            raise ValidationError('department is required')
 
-        return self.validate_asset_user_institution(request.user, request.data['department'])
+        return self._validate_asset_user_institution(request.user, department)
 
     def has_object_permission(self, request, view, obj):
         """
@@ -60,20 +62,18 @@ class UserInInstitutionPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if not self.validate_asset_user_institution(request.user, obj.department):
+        if not self._validate_asset_user_institution(request.user, obj.department):
             return False
         # in the case of PATCH, department may not have have been given
         if 'department' in request.data and \
-                not self.validate_asset_user_institution(request.user, request.data['department']):
+                not self._validate_asset_user_institution(request.user, request.data['department']):
             return False
         return True
 
     @staticmethod
-    def validate_asset_user_institution(user=None, department=None):
+    def _validate_asset_user_institution(user, department):
         """Validates that the user is member of the department that the asset belongs to
         (asset_department)."""
-        if user is None or department is None:
-            return False
 
         lookup_response = cache.get("{user.username}:lookup".format(user=user))
         if lookup_response is None:
@@ -85,27 +85,25 @@ class UserInInstitutionPermission(permissions.BasePermission):
             LOG.error('No institutions in cached lookup response for user %s', user.username)
             return False
 
-        institutions = map(lambda inst: inst['instid'],
-                           lookup_response.get('institutions', []))
-        if department not in institutions:
-            return False
+        for institution in lookup_response.get('institutions', []):
+            if department == institution['instid']:
+                return True
 
-        return True
+        return False
 
 
 def OrPermission(*args):
     """
     This is a function posing as a class. An example of it's intended usage is
 
-         :
+    ..code::
         permission_classes = (OrPermission(A, B), )
-         :
 
     where A & B are both class that extend from BasePermission. The function returns a class that,
     when instantiated authorise a request when either A or B authorise that request.
 
     :param args: a tuple of BasePermission subclasses
-    :return: a OrPermissionClass closure
+    :return: an OrPermissionClass closure
     """
     class OrPermissionClass(permissions.BasePermission):
 

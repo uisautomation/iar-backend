@@ -56,6 +56,7 @@ class Asset(ModelChangeMixin, models.Model):
 
     # General - asset level
     name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    # TODO when issues with import data have been resolved this should be required
     department = models.CharField(max_length=255, null=True, blank=True, db_index=True)
 
     PURPOSE_CHOICES = (
