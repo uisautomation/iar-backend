@@ -18,7 +18,8 @@ from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
-from .permissions import HasScopesPermission, UserInInstitutionPermission, OrPermission
+from .permissions import HasScopesPermission, UserInInstitutionPermission, OrPermission, AndPermission, \
+    UserInIARGroupPermission
 from .serializers import AssetSerializer
 
 
@@ -123,8 +124,13 @@ class AssetViewSet(viewsets.ModelViewSet):
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES
 
-    permission_classes = (HasScopesPermission,
-                          OrPermission(DjangoModelPermissions, UserInInstitutionPermission))
+    permission_classes = (
+        HasScopesPermission, OrPermission(
+            DjangoModelPermissions, AndPermission(
+                UserInIARGroupPermission, UserInInstitutionPermission
+            )
+        )
+    )
 
     def initial(self, request, *args, **kwargs):
         """Runs anything that needs to occur prior to calling the method handler."""

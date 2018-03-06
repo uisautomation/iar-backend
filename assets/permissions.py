@@ -7,6 +7,7 @@ import logging
 from django.core.cache import cache
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
+from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 
 LOG = logging.getLogger(__name__)
 
@@ -80,8 +81,7 @@ class UserInInstitutionPermission(permissions.BasePermission):
             LOG.error('No cached lookup response for user %s', user.username)
             return False
 
-        institutions = lookup_response.get('institutions')
-        if institutions is None:
+        if lookup_response.get('institutions') is None:
             LOG.error('No institutions in cached lookup response for user %s', user.username)
             return False
 
@@ -89,6 +89,29 @@ class UserInInstitutionPermission(permissions.BasePermission):
             if department == institution['instid']:
                 return True
 
+        return False
+
+
+class UserInIARGroupPermission(permissions.BasePermission):
+    """
+    Django REST framework permission which requires that FIXME.
+    """
+    def has_permission(self, request, view):
+        """
+        When FIXME
+        """
+        lookup_response = cache.get("{user.username}:lookup".format(user=request.user))
+        if lookup_response is None:
+            LOG.error('No cached lookup response for user %s', request.user.username)
+            return False
+
+        if lookup_response.get('group') is None:
+            LOG.error('No group in cached lookup response for user %s', request.user.username)
+            return False
+
+        for group in lookup_response.get('group', []):
+            if group['name'] == IAR_USERS_LOOKUP_GROUP:
+                return True
         return False
 
 
@@ -136,3 +159,42 @@ def OrPermission(*args):
             return False
 
     return OrPermissionClass
+
+
+def AndPermission(*args):
+    """
+    This is a function posing as a class. An example of it's intended usage is
+
+    ..code::
+        permission_classes = (OrPermission(AndPermission(A, B), C), )
+
+    where A & B are both class that extend from BasePermission. The function returns a class that,
+    when instantiated authorise a request when both A and B authorise that request.
+
+    :param args: a tuple of BasePermission subclasses
+    :return: an AndPermissionClass closure
+    """
+    class AndPermissionClass(permissions.BasePermission):
+
+        def __init__(self):
+            # instantiate each permission class
+            self.permissions = [Permission() for Permission in args]
+            # check that all given permissions inherit from BasePermission
+            for permission in self.permissions:
+                assert issubclass(type(permission), permissions.BasePermission)
+
+        def has_permission(self, request, view):
+            """is false when has_permission() for any of the permissions is false"""
+            for permission in self.permissions:
+                if not permission.has_permission(request, view):
+                    return False
+            return True
+
+        def has_object_permission(self, request, view, obj):
+            """is false when has_object_permission() for any of the permissions is false"""
+            for permission in self.permissions:
+                if not permission.has_object_permission(request, view, obj):
+                    return False
+            return True
+
+    return AndPermissionClass

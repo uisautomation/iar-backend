@@ -191,3 +191,5 @@ SWAGGER_SETTINGS = {
         },
     },
 }
+
+IAR_USERS_LOOKUP_GROUP = 'iar-users-group'
