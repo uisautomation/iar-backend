@@ -1,5 +1,7 @@
 [run]
 omit=
+	# hidden directories and their contents
+	.*
 	setup.py
 	manage.py
 	*/tests/*
