@@ -20,8 +20,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
-from .permissions import HasScopesPermission, UserInInstitutionPermission, OrPermission, AndPermission, \
-    UserInIARGroupPermission
+from .permissions import (
+    OrPermission, AndPermission,
+    HasScopesPermission, UserInInstitutionPermission, UserInIARGroupPermission
+)
 from .serializers import AssetSerializer
 
 
@@ -156,7 +158,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         prive but the user doing the request belongs to department that owns the asset."""
 
         lookup_response = cache.get(
-            f"{self.request.user.username}:lookup", {'institutions': [], 'groups':[]}
+            f"{self.request.user.username}:lookup", {'institutions': [], 'groups': []}
         )
 
         in_iar_group = [
