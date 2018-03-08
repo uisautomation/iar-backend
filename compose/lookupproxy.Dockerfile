@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 
 # Clone latest lookupproxy source
 RUN \
-	git clone https://github.com/msb/lookupproxy -b use_prod_lookup /usr/src/app && \
+	git clone https://github.com/uisautomation/lookupproxy /usr/src/app && \
 	pip install -r requirements.txt && \
 	pip install -r requirements_developer.txt
 

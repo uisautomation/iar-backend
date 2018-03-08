@@ -282,6 +282,7 @@ class UserInIARGroupPermissionTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        UserLookup.objects.create(user=self.user, scheme='mock', identifier=self.user.username)
         self.request.user = self.user
 
     def test_no_cached_lookup(self):
