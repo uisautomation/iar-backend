@@ -36,3 +36,4 @@ ASSETS_OAUTH2_CLIENT_ID = 'api-client-id'
 ASSETS_OAUTH2_CLIENT_SECRET = 'api-client-secret'
 ASSETS_OAUTH2_INTROSPECT_SCOPES = ['introspect']
 LOOKUP_SELF = 'http://lookupproxy/people/token/self'
+IAR_USERS_LOOKUP_GROUP = 'uis-iar-users'

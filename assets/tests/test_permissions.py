@@ -2,6 +2,7 @@
 Test custom DRF permissions
 
 """
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
@@ -12,7 +13,6 @@ from rest_framework.request import Request
 
 from assets import permissions
 from assets.models import Asset
-from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 
 
 class OrPermissionTests(TestCase):
@@ -306,7 +306,8 @@ class UserInIARGroupPermissionTests(TestCase):
         """
         check the view permission is true when the user is associated with the asset's department
         """
-        cache.set(f"{self.user.username}:lookup", {'groups': [{'name': IAR_USERS_LOOKUP_GROUP}]})
+        cache.set(f"{self.user.username}:lookup",
+                  {'groups': [{'name': settings.IAR_USERS_LOOKUP_GROUP}]})
         self.assertTrue(self.has_permission())
 
     def has_permission(self):

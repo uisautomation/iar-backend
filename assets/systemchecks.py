@@ -31,6 +31,7 @@ def api_credentials_check(app_configs, **kwargs):
         'ASSETS_OAUTH2_CLIENT_SECRET',
         'ASSETS_OAUTH2_INTROSPECT_SCOPES',
         'LOOKUP_SELF',
+        'IAR_USERS_LOOKUP_GROUP',
     ]
     for idx, name in enumerate(required_settings):
         value = getattr(settings, name, None)

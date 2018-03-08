@@ -42,9 +42,14 @@ introspection endpoint.
 
 """
 
-
 LOOKUP_SELF = None
 """
 URL of the LookupProxy endpoint that the authentication uses to get data about the user logged in.
+
+"""
+
+IAR_USERS_LOOKUP_GROUP = None
+"""
+Name of lookup group which a user must be a member of to have access to IAR.
 
 """

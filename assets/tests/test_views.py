@@ -1,5 +1,6 @@
 import copy
 from unittest import mock
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -11,7 +12,6 @@ from assets.models import Asset
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
-from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 
 LOOKUP_RESPONSE = {
     'institutions': [{
@@ -19,7 +19,7 @@ LOOKUP_RESPONSE = {
         'cancelled': False, 'instid': 'TESTDEPT', 'name': 'Test Department'
     }],
     'groups': [{
-        'name': IAR_USERS_LOOKUP_GROUP
+        'name': settings.IAR_USERS_LOOKUP_GROUP
     }],
 }
 

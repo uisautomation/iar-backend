@@ -4,10 +4,10 @@ OAuth2 token-based permissions for Django REST Framework views.
 """
 import logging
 
+from django.conf import settings
 from django.core.cache import cache
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
-from iarbackend.settings import IAR_USERS_LOOKUP_GROUP
 
 LOG = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ class UserInIARGroupPermission(permissions.BasePermission):
             return False
 
         for group in lookup_response['groups']:
-            if group['name'] == IAR_USERS_LOOKUP_GROUP:
+            if group['name'] == settings.IAR_USERS_LOOKUP_GROUP:
                 return True
 
         return False
