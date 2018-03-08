@@ -28,10 +28,19 @@ Views and serializers
 Authentication and permissions
 ``````````````````````````````
 
+.. automodule:: assets.oauth2client
+    :members:
+
 .. automodule:: assets.authentication
     :members:
 
 .. automodule:: assets.permissions
+    :members:
+
+Interaction with lookup
+```````````````````````
+
+.. automodule:: assets.lookup
     :members:
 
 Extensions to drf-yasg

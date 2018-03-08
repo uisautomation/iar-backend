@@ -42,9 +42,23 @@ introspection endpoint.
 
 """
 
-LOOKUP_SELF = None
+ASSETS_OAUTH2_LOOKUP_SCOPES = ['lookup:anonymous']
 """
-URL of the LookupProxy endpoint that the authentication uses to get data about the user logged in.
+List of OAuth2 scopes the API server will request for the token it will use with lookup.
+
+"""
+
+LOOKUP_ROOT = None
+"""
+URL of the lookup proxy's API root.
+
+"""
+
+LOOKUP_PEOPLE_CACHE_LIFETIME = 1800
+"""
+Responses to the people endpoint of lookupproxy are cached to increase performance. We assume that
+lookup details on people change rarely. This setting specifies the lifetime of a single cached
+lookup resource for a person in seconds.
 
 """
 

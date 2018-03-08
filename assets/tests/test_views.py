@@ -8,7 +8,8 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
-from assets.models import Asset
+from assets.models import Asset, UserLookup
+from assets.tests import set_cached_person_for_user
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
@@ -33,6 +34,8 @@ class APIViewsTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
         self.refresh_user()
 
         cache.set(f"{self.user.username}:lookup", LOOKUP_RESPONSE)
@@ -86,7 +89,7 @@ class APIViewsTests(TestCase):
         self.assertEqual(len(result_get_dict["results"]), 1)
         self.assert_dict_list_equal(asset_dict2, result_get_dict["results"][0],
                                     ignore_keys=('created_at', 'updated_at', 'url', 'is_complete',
-                                                 'id'))
+                                                 'id', 'allowed_methods'))
 
     def test_order_filter(self):
         # test that we can order the list of all assets by name (asc, desc)
@@ -152,6 +155,7 @@ class APIViewsTests(TestCase):
         asset.save()
         result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset1"})
         # Not allowed because the asset belongs to TESTDEPT2
+        self.assert_method_is_not_listed_as_allowed('PATCH', asset)
         self.assertEqual(result_patch.status_code, 403)
 
         # We fix the department, so now the user should be allow but we try to change the
@@ -159,11 +163,17 @@ class APIViewsTests(TestCase):
         asset.department = 'TESTDEPT'
         set_local_user(self.user)
         asset.save()
+
+        # User is in principle allowed ...
+        self.assert_method_is_listed_as_allowed('PATCH', asset)
+
+        # ... but not in this case
         result_patch = client.patch('/assets/%s/' % asset.pk, {"department": "TESTDEPT2"})
         self.assertEqual(result_patch.status_code, 403)
 
         # This one should be allowed
         result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset2"})
+        self.assert_method_is_listed_as_allowed('PATCH', asset)
         self.assertEqual(result_patch.status_code, 200)
 
     def test_asset_put_validation(self):
@@ -176,6 +186,7 @@ class APIViewsTests(TestCase):
         asset.save()
         result_put = client.put('/assets/%s/' % asset.pk, COMPLETE_ASSET)
         # Not allowed because the asset belongs to TESTDEPT2
+        self.assert_method_is_not_listed_as_allowed('PUT', asset)
         self.assertEqual(result_put.status_code, 403)
 
         # We fix the department, so now the user should be allow but we try to change the
@@ -183,6 +194,11 @@ class APIViewsTests(TestCase):
         asset.department = 'TESTDEPT'
         set_local_user(self.user)
         asset.save()
+
+        # User can, in principle PUT...
+        self.assert_method_is_listed_as_allowed('PUT', asset)
+
+        # ... but not this asset
         result_put = client.put('/assets/%s/' % asset.pk, asset_dict)
         self.assertEqual(result_put.status_code, 403)
 
@@ -190,6 +206,7 @@ class APIViewsTests(TestCase):
         asset_dict['department'] = 'TESTDEPT'
         asset_dict['name'] = 'asset2'
         result_put = client.put('/assets/%s/' % asset.pk, asset_dict)
+        self.assert_method_is_listed_as_allowed('PUT', asset)
         self.assertEqual(result_put.status_code, 200)
 
     def test_privacy(self):
@@ -229,9 +246,12 @@ class APIViewsTests(TestCase):
 
         result_delete = client.delete(result_post.json()['url'])
         # User's institution doesn't match asset institution
+        self.assert_method_is_not_listed_as_allowed('DELETE', asset)
         self.assertEqual(result_delete.status_code, 403)
 
-        cache.set(f"{self.user.username}:lookup", LOOKUP_RESPONSE)
+        set_cached_person_for_user(self.user, LOOKUP_RESPONSE)
+        self.assert_method_is_listed_as_allowed('DELETE', asset)
+
         result_delete = client.delete(result_post.json()['url'])
         # User's institution match asset institution
         self.assertEqual(result_delete.status_code, 204)
@@ -263,6 +283,9 @@ class APIViewsTests(TestCase):
             }
         )
 
+        # DELETE not in allowed methods
+        self.assert_method_is_not_listed_as_allowed('DELETE', asset)
+
         # Initially fails
         result_delete = client.delete(result_post.json()['url'])
         self.assertEqual(result_delete.status_code, 403)
@@ -276,6 +299,10 @@ class APIViewsTests(TestCase):
         self.refresh_user()
 
         self.assertTrue(self.user.has_perm('assets.delete_asset'))
+
+        # DELETE is now in allowed methods
+        self.assert_method_is_listed_as_allowed('DELETE', asset)
+
         result_delete = client.delete(result_post.json()['url'])
         self.assertEqual(result_delete.status_code, 204)
 
@@ -286,6 +313,9 @@ class APIViewsTests(TestCase):
         asset_dict['department'] = 'TESTDEPT2'
         asset = Asset(**asset_dict)
         asset.save()
+
+        # PATCH not in allowed methods
+        self.assert_method_is_not_listed_as_allowed('PATCH', asset)
 
         result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset1"})
 
@@ -301,6 +331,10 @@ class APIViewsTests(TestCase):
         self.refresh_user()
 
         self.assertTrue(self.user.has_perm('assets.change_asset'))
+
+        # PATCH is now in allowed methods
+        self.assert_method_is_listed_as_allowed('PATCH', asset)
+
         result_patch = client.patch('/assets/%s/' % asset.pk, {"name": "asset1"})
         self.assertEqual(result_patch.status_code, 200)
 
@@ -311,6 +345,10 @@ class APIViewsTests(TestCase):
         asset_dict['department'] = 'TESTDEPT2'
         asset = Asset(**asset_dict)
         asset.save()
+
+        # PUT not in allowed methods
+        self.assert_method_is_not_listed_as_allowed('PUT', asset)
+
         result_put = client.put('/assets/%s/' % asset.pk, COMPLETE_ASSET)
 
         # Not allowed because the asset belongs to TESTDEPT2
@@ -325,6 +363,10 @@ class APIViewsTests(TestCase):
         self.refresh_user()
 
         self.assertTrue(self.user.has_perm('assets.change_asset'))
+
+        # PUT is now in allowed methods
+        self.assert_method_is_listed_as_allowed('PUT', asset)
+
         result_put = client.put('/assets/%s/' % asset.pk, COMPLETE_ASSET)
         self.assertEqual(result_put.status_code, 200)
 
@@ -410,6 +452,20 @@ class APIViewsTests(TestCase):
                 d2[k] = set(v)
         return self.assertDictEqual(d1, d2, msg)
 
+    def assert_method_is_listed_as_allowed(self, method, asset):
+        """Assert that a given method appears in the allowed_methods list for an asset."""
+        client = APIClient()
+        result_get = client.get('/assets/%s/' % asset.pk)
+        self.assertEqual(result_get.status_code, 200)
+        self.assertIn(method, result_get.data['allowed_methods'])
+
+    def assert_method_is_not_listed_as_allowed(self, method, asset):
+        """Assert that a given method does not appear in the allowed_methods list for an asset."""
+        client = APIClient()
+        result_get = client.get('/assets/%s/' % asset.pk)
+        self.assertEqual(result_get.status_code, 200)
+        self.assertNotIn(method, result_get.data['allowed_methods'])
+
     def post_asset(self, asset):
         """Helper for creating an asset and parsing the response"""
         client = APIClient()
@@ -465,6 +521,9 @@ class AssetFilterTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
+
         self.mock_authenticate.return_value = (self.user, {'scope': ' '.join(REQUIRED_SCOPES)})
 
         self.client = APIClient()

@@ -2,12 +2,14 @@ from automationcommon.models import Audit, set_local_user, clear_local_user
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from assets.models import Asset
+from assets.models import Asset, UserLookup
 
 
 class AuditTest(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username='test0001')
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
         set_local_user(self.user)
         self.asset = Asset(name='test-asset')
         self.asset.save()

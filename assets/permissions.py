@@ -5,9 +5,10 @@ OAuth2 token-based permissions for Django REST Framework views.
 import logging
 
 from django.conf import settings
-from django.core.cache import cache
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
+
+from .lookup import get_person_for_user
 
 LOG = logging.getLogger(__name__)
 
@@ -161,13 +162,13 @@ class UserInInstitutionPermission(permissions.BasePermission):
         """Validates that the user is member of the department that the asset belongs to
         (asset_department)."""
 
-        lookup_response = cache.get(f"{user.username}:lookup")
+        lookup_response = get_person_for_user(user)
         if lookup_response is None:
-            LOG.error('No cached lookup response for user %s', user.username)
+            LOG.error('No cached lookup response for %s', user)
             return False
 
         if lookup_response.get('institutions') is None:
-            LOG.error('No institutions in cached lookup response for user %s', user.username)
+            LOG.error('No institutions in cached lookup response for %s', user)
             return False
 
         for institution in lookup_response['institutions']:
@@ -182,13 +183,13 @@ class UserInIARGroupPermission(permissions.BasePermission):
     Django REST framework permission which requires that the user be in the IAR_USERS_LOOKUP_GROUP.
     """
     def has_permission(self, request, view):
-        lookup_response = cache.get(f"{request.user.username}:lookup")
+        lookup_response = get_person_for_user(request.user)
         if lookup_response is None:
-            LOG.error('No cached lookup response for user %s', request.user.username)
+            LOG.error('No cached lookup response for %s', request.user)
             return False
 
         if lookup_response.get('groups') is None:
-            LOG.error('No groups in cached lookup response for user %s', request.user.username)
+            LOG.error('No groups in cached lookup response for %s', request.user)
             return False
 
         for group in lookup_response['groups']:

@@ -6,13 +6,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
-from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
 from assets import permissions
-from assets.models import Asset
+from assets.models import Asset, UserLookup
+
+from . import clear_cached_person_for_user, set_cached_person_for_user
 
 
 class OrPermissionTests(TestCase):
@@ -176,9 +177,12 @@ class UserInInstitutionPermissionTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
         self.request.user = self.user
 
-        cache.set(f"{self.user.username}:lookup", {'institutions': [{'instid': 'UIS'}]})
+        # Explicitly set the default user's lookup response
+        set_cached_person_for_user(self.user, {'institutions': [{'instid': 'UIS'}]})
 
     def test_view_perms_true_for_all_except_POST(self):
         """check that the view permission returns true for all request methods expect POST"""
@@ -193,16 +197,9 @@ class UserInInstitutionPermissionTests(TestCase):
         self.request.method = 'POST'
         self.assertRaises(ValidationError, self.has_permission)
 
-    def test_view_perms_POST_no_cached_lookup(self):
-        """check the view permission is false when there is not cached lookup for the user"""
-        cache.delete(f"{self.user.username}:lookup")
-        self.request.method = 'POST'
-        self.request.data['department'] = 'UIS'
-        self.assertFalse(self.has_permission())
-
-    def test_view_perms_POST_no_institutions_in_cached_lookup(self):
+    def test_view_perms_POST_no_institution_in_cached_lookup(self):
         """check the view permission is false when the user's cached lookup has no institutions"""
-        cache.set(f"{self.user.username}:lookup", {})
+        set_cached_person_for_user(self.user, {})
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())
@@ -210,7 +207,7 @@ class UserInInstitutionPermissionTests(TestCase):
     def test_view_perms_POST_user_not_in_TESTDEPT(self):
         """check the view permission is false
         when the user's isn't associated with the asset's department"""
-        cache.set(f"{self.user.username}:lookup", {'institutions': [{'instid': 'OTHER'}]})
+        set_cached_person_for_user(self.user, {'institutions': [{'instid': 'OTHER'}]})
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())
@@ -273,7 +270,7 @@ class UserInInstitutionPermissionTests(TestCase):
         )
 
     def tearDown(self):
-        cache.delete(f"{self.user.username}:lookup")
+        clear_cached_person_for_user(self.user)
 
 
 class UserInIARGroupPermissionTests(TestCase):
@@ -293,24 +290,27 @@ class UserInIARGroupPermissionTests(TestCase):
 
     def test_no_groups_in_cached_lookup(self):
         """check the view permission is false when the user's cached lookup has no groups"""
-        cache.set(f"{self.user.username}:lookup", {})
+        set_cached_person_for_user(self.user, {})
         self.assertFalse(self.has_permission())
 
     def test_user_not_in_iar_group(self):
         """check the view permission is false
         when the user's isn't associated with the asset's department"""
-        cache.set(f"{self.user.username}:lookup", {'groups': [{'name': 'other-group'}]})
+        set_cached_person_for_user(self.user, {'groups': [{'name': 'other-group'}]})
         self.assertFalse(self.has_permission())
 
     def test_user_in_iar_group(self):
         """
         check the view permission is true when the user is associated with the asset's department
         """
-        cache.set(f"{self.user.username}:lookup",
-                  {'groups': [{'name': settings.IAR_USERS_LOOKUP_GROUP}]})
+        set_cached_person_for_user(self.user,
+                                   {'groups': [{'name': settings.IAR_USERS_LOOKUP_GROUP}]})
         self.assertTrue(self.has_permission())
 
     def has_permission(self):
         """convenience method to return the has_permission() method value
         when evaluated on the test's request"""
         return self.perm.has_permission(self.request, None)
+
+    def tearDown(self):
+        clear_cached_person_for_user(self.user)

@@ -185,7 +185,6 @@ SWAGGER_SETTINGS = {
             'flow': 'implicit',
             'authorizationUrl': 'http://oauth2.example.com/oauth2/auth',
             'scopes': {
-                'lookup:anonymous': 'Anonymous Lookup Access',
                 'assetregister': 'Read/write access to the asset register',
             },
         },
