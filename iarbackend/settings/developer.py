@@ -92,5 +92,3 @@ LOGGING = {
         },
     },
 }
-
-IAR_USERS_LOOKUP_GROUP = 'uis-iar-users'

@@ -20,10 +20,10 @@ class RequiredSettings(TestCase):
         'ASSETS_OAUTH2_CLIENT_SECRET',
         'ASSETS_OAUTH2_INTROSPECT_SCOPES',
         'LOOKUP_SELF',
-        'IAR_USERS_LOOKUP_GROUP',
     ]
 
-    def test_checks_pass(self):
+    @staticmethod
+    def test_checks_pass():
         """The system checks should succeed in the test suite configuration."""
         call_command('check')
 

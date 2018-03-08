@@ -48,7 +48,7 @@ URL of the LookupProxy endpoint that the authentication uses to get data about t
 
 """
 
-IAR_USERS_LOOKUP_GROUP = None
+IAR_USERS_LOOKUP_GROUP = 'uis-iar-users'
 """
 Name of lookup group which a user must be a member of to have access to IAR.
 
