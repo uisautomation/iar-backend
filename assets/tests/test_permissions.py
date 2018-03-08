@@ -5,13 +5,14 @@ Test custom DRF permissions
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
-from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
 from assets import permissions
-from assets.models import Asset
+from assets.models import Asset, UserLookup
+
+from . import clear_cached_person_for_user, set_cached_person_for_user
 
 
 class HasScopesPermissionTests(TestCase):
@@ -66,12 +67,15 @@ class UserInInstitutionPermissionTests(TestCase):
 
         # By default, authentication succeeds
         self.user = get_user_model().objects.create_user(username="test0001")
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
         self.request.user = self.user
 
-        cache.set("%s:lookup" % self.user.username, {'institutions': [{'instid': 'UIS'}]}, 120)
+        # Explicitly set the default user's lookup response
+        set_cached_person_for_user(self.user, {'institutions': [{'instid': 'UIS'}]})
 
     def tearDown(self):
-        cache.delete("%s:lookup" % self.user.username)
+        clear_cached_person_for_user(self.user)
 
     def test_view_perms_true_for_all_except_POST(self):
         """check that the view permission returns true for all request methods expect POST"""
@@ -86,16 +90,9 @@ class UserInInstitutionPermissionTests(TestCase):
         self.request.method = 'POST'
         self.assertRaises(ValidationError, self.has_permission)
 
-    def test_view_perms_POST_no_cached_lookup(self):
-        """check the view permission is false when there is not cached lookup for the user"""
-        cache.delete("%s:lookup" % self.user.username)
-        self.request.method = 'POST'
-        self.request.data['department'] = 'UIS'
-        self.assertFalse(self.has_permission())
-
     def test_view_perms_POST_no_institution_in_cached_lookup(self):
         """check the view permission is false when the user's cached lookup has no institutions"""
-        cache.set("%s:lookup" % self.user.username, {}, 120)
+        set_cached_person_for_user(self.user, {})
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())
@@ -103,7 +100,7 @@ class UserInInstitutionPermissionTests(TestCase):
     def test_view_perms_POST_user_not_in_TESTDEPT(self):
         """check the view permission is false
         when the user's isn't associated with the asset's department"""
-        cache.set("%s:lookup" % self.user.username, {'institutions': [{'instid': 'OTHER'}]}, 120)
+        set_cached_person_for_user(self.user, {'institutions': [{'instid': 'OTHER'}]})
         self.request.method = 'POST'
         self.request.data['department'] = 'UIS'
         self.assertFalse(self.has_permission())

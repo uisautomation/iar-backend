@@ -19,7 +19,7 @@ class RequiredSettings(TestCase):
         'ASSETS_OAUTH2_CLIENT_ID',
         'ASSETS_OAUTH2_CLIENT_SECRET',
         'ASSETS_OAUTH2_INTROSPECT_SCOPES',
-        'LOOKUP_SELF'
+        'LOOKUP_ROOT'
     ]
 
     def test_checks_pass(self):

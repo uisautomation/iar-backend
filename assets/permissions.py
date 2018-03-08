@@ -4,9 +4,10 @@ OAuth2 token-based permissions for Django REST Framework views.
 """
 import logging
 
-from django.core.cache import cache
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
+
+from .lookup import get_person_for_user
 
 LOG = logging.getLogger(__name__)
 
@@ -75,10 +76,10 @@ class UserInInstitutionPermission(permissions.BasePermission):
         """Validates that the user is member of the department that the asset belongs to
         (asset_department)."""
 
-        lookup_response = cache.get("{user.username}:lookup".format(user=user))
-        if lookup_response is None:
-            LOG.error('No cached lookup response for user %s', user.username)
+        if user is None or user.is_anonymous or department is None:
             return False
+
+        lookup_response = get_person_for_user(user)
 
         institutions = lookup_response.get('institutions')
         if institutions is None:

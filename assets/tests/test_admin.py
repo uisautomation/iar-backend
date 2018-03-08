@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from assets.models import Asset
+from assets.models import Asset, UserLookup
 
 
 class AdminViewsTests(TestCase):
@@ -10,7 +10,9 @@ class AdminViewsTests(TestCase):
         super().setUp()
         self.asset = Asset.objects.create(name='foo')
         self.superuser = get_user_model().objects.create_user(
-            username='testing', is_staff=True, is_superuser=True)
+            username='test0001', is_staff=True, is_superuser=True)
+        self.superuser_lookup = UserLookup.objects.create(
+            user=self.superuser, scheme='mock', identifier=self.superuser.username)
 
     def test_index(self):
         """Viewing the assets index in admin should be possible."""
