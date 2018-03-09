@@ -8,7 +8,6 @@ from assets.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
 
 from django.conf import settings
-from django.core.cache import cache
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
