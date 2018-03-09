@@ -4,6 +4,7 @@ Views for the assets application.
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 
+from assets.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
 
 from django.conf import settings
@@ -162,9 +163,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         they can't see assets.
         """
 
-        lookup_response = cache.get(
-            f"{self.request.user.username}:lookup", {'institutions': [], 'groups': []}
-        )
+        lookup_response = get_person_for_user(self.request.user)
 
         in_iar_group = [
             group for group in lookup_response['groups']
