@@ -1,5 +1,6 @@
 import copy
 from unittest import mock
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -8,9 +9,20 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from assets.models import Asset, UserLookup
+from assets.tests import set_cached_person_for_user
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
+
+LOOKUP_RESPONSE = {
+    'institutions': [{
+        'url': 'http://lookupproxy:8080/institutions/TESTDEPT', 'acronym': None,
+        'cancelled': False, 'instid': 'TESTDEPT', 'name': 'Test Department'
+    }],
+    'groups': [{
+        'name': settings.IAR_USERS_LOOKUP_GROUP
+    }],
+}
 
 
 class APIViewsTests(TestCase):
@@ -26,10 +38,7 @@ class APIViewsTests(TestCase):
             user=self.user, scheme='mock', identifier=self.user.username)
         self.refresh_user()
 
-        cache.set("%s:lookup" % self.user.username,
-                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/TESTDEPT',
-                                     'acronym': None, 'cancelled': False, 'instid': 'TESTDEPT',
-                                     'name': 'Test Department'}]}, 120)
+        cache.set(f"{self.user.username}:lookup", LOOKUP_RESPONSE)
 
     def tearDown(self):
         self.auth_patch.stop()
@@ -227,22 +236,22 @@ class APIViewsTests(TestCase):
         list_assets = client.get('/assets/', format='json')
         self.assertNotEqual(list_assets.json()['results'], [])
 
-        cache.set("%s:lookup" % self.user.username,
-                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/UIS',
-                                     'acronym': None, 'cancelled': False, 'instid': 'UIS',
-                                     'name': 'University Information Services'}]}, 120)
+        cache.set(
+            f"{self.user.username}:lookup",
+            {
+                **LOOKUP_RESPONSE,
+                'institutions': [{**LOOKUP_RESPONSE['institutions'][0], 'instid': 'UIS'}]
+            }
+        )
 
         result_delete = client.delete(result_post.json()['url'])
         # User's institution doesn't match asset institution
         self.assert_method_is_not_listed_as_allowed('DELETE', asset)
         self.assertEqual(result_delete.status_code, 403)
 
-        cache.delete("%s:lookup" % self.user.username)
-        cache.set("%s:lookup" % self.user.username,
-                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/TESTDEPT',
-                                     'acronym': None, 'cancelled': False, 'instid': 'TESTDEPT',
-                                     'name': 'Test Department'}]}, 120)
+        set_cached_person_for_user(self.user, LOOKUP_RESPONSE)
         self.assert_method_is_listed_as_allowed('DELETE', asset)
+
         result_delete = client.delete(result_post.json()['url'])
         # User's institution match asset institution
         self.assertEqual(result_delete.status_code, 204)
@@ -266,10 +275,13 @@ class APIViewsTests(TestCase):
         asset = Asset.objects.get(pk=result_post.json()['id'])
         self.assertIsNone(asset.deleted_at)
 
-        cache.set("%s:lookup" % self.user.username,
-                  {'institutions': [{'url': 'http://lookupproxy:8080/institutions/UIS',
-                                     'acronym': None, 'cancelled': False, 'instid': 'UIS',
-                                     'name': 'University Information Services'}]}, 120)
+        cache.set(
+            f"{self.user.username}:lookup",
+            {
+                **LOOKUP_RESPONSE,
+                'institutions': [{**LOOKUP_RESPONSE['institutions'][0], 'instid': 'UIS'}]
+            }
+        )
 
         # DELETE not in allowed methods
         self.assert_method_is_not_listed_as_allowed('DELETE', asset)
@@ -377,6 +389,29 @@ class APIViewsTests(TestCase):
         self.assertTrue(self.user.has_perm('assets.add_asset'))
         result_post = client.post('/assets/', asset_dict, format='json')
         self.assertEqual(result_post.status_code, 201)
+
+    def test_iar_users_group_membership(self):
+        """check that the user can do/see nothing if they aren't in uis-iar-users"""
+        client = APIClient()
+
+        # remove group membership
+        cache.set(f"{self.user.username}:lookup", {**LOOKUP_RESPONSE, 'groups': []})
+
+        # create a asset
+        asset = Asset.objects.create(**COMPLETE_ASSET)
+        asset_url = '/assets/%s/' % asset.pk
+
+        # test no assets are listed
+        self.assertEqual(client.get('/assets/', format='json').json()['results'], [])
+
+        # test single asset isn't visible
+        self.assertEqual(client.get(asset_url).status_code, 404)
+
+        # test all change operations fail with 403
+        self.assertEqual(client.post('/assets/', COMPLETE_ASSET, format='json').status_code, 403)
+        self.assertEqual(client.put(asset_url, COMPLETE_ASSET, format='json').status_code, 403)
+        self.assertEqual(client.patch(asset_url, {'name': 'new'}, format='json').status_code, 403)
+        self.assertEqual(client.delete(asset_url).status_code, 403)
 
     def refresh_user(self):
         """Refresh user from the database."""

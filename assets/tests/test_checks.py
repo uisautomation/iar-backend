@@ -22,7 +22,8 @@ class RequiredSettings(TestCase):
         'LOOKUP_ROOT'
     ]
 
-    def test_checks_pass(self):
+    @staticmethod
+    def test_checks_pass():
         """The system checks should succeed in the test suite configuration."""
         call_command('check')
 

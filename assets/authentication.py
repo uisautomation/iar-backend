@@ -58,9 +58,10 @@ class OAuth2TokenAuthentication(BaseAuthentication):
         else:
             user = None
 
-        return (user, token)
+        return user, token
 
-    def validate_token(self, token):
+    @staticmethod
+    def validate_token(token):
         """
         Helper method which validates a Bearer token and returns the parsed response from the
         introspection endpoint if the token is valid. If the token is invalid, None is returned.

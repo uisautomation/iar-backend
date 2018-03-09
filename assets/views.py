@@ -4,9 +4,10 @@ Views for the assets application.
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 
+from assets.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
 
-from django.core.cache import cache
+from django.conf import settings
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
@@ -16,9 +17,13 @@ from django_filters.rest_framework import (
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
+
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
-from .permissions import HasScopesPermission, UserInInstitutionPermission, OrPermission
+from .permissions import (
+    OrPermission, AndPermission,
+    HasScopesPermission, UserInInstitutionPermission, UserInIARGroupPermission
+)
 from .serializers import AssetSerializer
 
 
@@ -57,7 +62,7 @@ class AssetFilter(FilterSet):
     retention = ChoiceFilter(choices=Asset.RETENTION_CHOICES)
     is_complete = BooleanFilter(name="is_complete")
     # TODO:
-    # It seem's probable that we would like to filter on the follow list ofMultiSelectField fields.
+    # It seem's probable that we would like to filter on the following MultiSelectField fields.
     # However, we should implement this when we know how we would like to filter them.
     #   data_subject,
     #   data_category,
@@ -123,8 +128,13 @@ class AssetViewSet(viewsets.ModelViewSet):
     authentication_classes = (OAuth2TokenAuthentication,)
     required_scopes = REQUIRED_SCOPES
 
-    permission_classes = (HasScopesPermission,
-                          OrPermission(DjangoModelPermissions, UserInInstitutionPermission))
+    permission_classes = (
+        HasScopesPermission, OrPermission(
+            DjangoModelPermissions, AndPermission(
+                UserInIARGroupPermission, UserInInstitutionPermission
+            )
+        )
+    )
 
     def initial(self, request, *args, **kwargs):
         """Runs anything that needs to occur prior to calling the method handler."""
@@ -144,13 +154,28 @@ class AssetViewSet(viewsets.ModelViewSet):
         return super().finalize_response(request, response, *args, **kwargs)
 
     def get_queryset(self):
-        """get_queryset is patched to only return those assets that are not private or that are
-        prive but the user doing the request belongs to department that owns the asset."""
+        """
+        get_queryset is patched to only return those assets that are not private or that are
+        private but the user doing the request belongs to department that owns the asset.
+
+        Also, if the user is not in :py:attr:`~assets.defaultsettings.IAR_USERS_LOOKUP_GROUP`,
+        they can't see assets.
+        """
+
+        lookup_response = get_person_for_user(self.request.user)
+
+        in_iar_group = [
+            group for group in lookup_response['groups']
+            if group['name'] == settings.IAR_USERS_LOOKUP_GROUP
+        ]
+
+        if not in_iar_group:
+            return Asset.objects.none()
+
         queryset = super(AssetViewSet, self).get_queryset()
 
-        institutions = list(map(lambda inst: inst['instid'],
-                                cache.get("%s:lookup" % self.request.user.username,
-                                          {'institutions': []})['institutions']))
+        institutions = [institution['instid'] for institution in lookup_response['institutions']]
+
         return queryset.filter(Q(private=False) | Q(private=True, department__in=institutions))
 
     def update(self, request, *args, **kwargs):

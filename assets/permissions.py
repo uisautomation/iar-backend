@@ -4,12 +4,98 @@ OAuth2 token-based permissions for Django REST Framework views.
 """
 import logging
 
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
 
 from .lookup import get_person_for_user
 
 LOG = logging.getLogger(__name__)
+
+
+def OrPermission(*args):
+    """
+    This is a function posing as a class. An example of it's intended usage is
+
+    ..code::
+        permission_classes = (OrPermission(A, B), )
+
+    where A & B are both class that extend from BasePermission. The function returns a class that,
+    when instantiated authorise a request when either A or B authorise that request.
+
+    :param args: a tuple of BasePermission subclasses
+    :return: an OrPermissionClass closure
+    """
+    class OrPermissionClass(permissions.BasePermission):
+
+        def __init__(self):
+            # instantiate each permission class
+            self.permissions = [Permission() for Permission in args]
+            # check that all given permissions inherit from BasePermission
+            for permission in self.permissions:
+                assert issubclass(type(permission), permissions.BasePermission)
+
+        def has_permission(self, request, view):
+            """is true when has_permission() for any of the permissions is true"""
+            for permission in self.permissions:
+                if permission.has_permission(request, view):
+                    return True
+            return False
+
+        def has_object_permission(self, request, view, obj):
+            """This is true when BOTH has_permission() AND has_object_permission()
+            for any of the permissions is true.
+            This is important because of the case where X.has_permission() returns false
+            but X.has_object_permission() has been left unimplemented and thus returns true.
+            This in combination with Y.has_permission() = true and
+            Y.has_object_permission() = false would otherwise return true incorrectly.
+            """
+            for permission in self.permissions:
+                if permission.has_permission(request, view) \
+                        and permission.has_object_permission(request, view, obj):
+                    return True
+            return False
+
+    return OrPermissionClass
+
+
+def AndPermission(*args):
+    """
+    This is a function posing as a class. An example of it's intended usage is
+
+    ..code::
+        permission_classes = (OrPermission(AndPermission(A, B), C), )
+
+    where A & B are both class that extend from BasePermission. The function returns a class that,
+    when instantiated authorise a request when both A and B authorise that request.
+
+    :param args: a tuple of BasePermission subclasses
+    :return: an AndPermissionClass closure
+    """
+    class AndPermissionClass(permissions.BasePermission):
+
+        def __init__(self):
+            # instantiate each permission class
+            self.permissions = [Permission() for Permission in args]
+            # check that all given permissions inherit from BasePermission
+            for permission in self.permissions:
+                assert issubclass(type(permission), permissions.BasePermission)
+
+        def has_permission(self, request, view):
+            """is false when has_permission() for any of the permissions is false"""
+            for permission in self.permissions:
+                if not permission.has_permission(request, view):
+                    return False
+            return True
+
+        def has_object_permission(self, request, view, obj):
+            """is false when has_object_permission() for any of the permissions is false"""
+            for permission in self.permissions:
+                if not permission.has_object_permission(request, view, obj):
+                    return False
+            return True
+
+    return AndPermissionClass
 
 
 class HasScopesPermission(permissions.BasePermission):
@@ -76,64 +162,38 @@ class UserInInstitutionPermission(permissions.BasePermission):
         """Validates that the user is member of the department that the asset belongs to
         (asset_department)."""
 
-        if user is None or user.is_anonymous or department is None:
-            return False
-
         lookup_response = get_person_for_user(user)
-
-        institutions = lookup_response.get('institutions')
-        if institutions is None:
-            LOG.error('No institutions in cached lookup response for user %s', user.username)
+        if lookup_response is None:
+            LOG.error('No cached lookup response for %s', user)
             return False
 
-        for institution in lookup_response.get('institutions', []):
+        if lookup_response.get('institutions') is None:
+            LOG.error('No institutions in cached lookup response for %s', user)
+            return False
+
+        for institution in lookup_response['institutions']:
             if department == institution['instid']:
                 return True
 
         return False
 
 
-def OrPermission(*args):
+class UserInIARGroupPermission(permissions.BasePermission):
     """
-    This is a function posing as a class. An example of it's intended usage is
-
-    ..code::
-        permission_classes = (OrPermission(A, B), )
-
-    where A & B are both class that extend from BasePermission. The function returns a class that,
-    when instantiated authorise a request when either A or B authorise that request.
-
-    :param args: a tuple of BasePermission subclasses
-    :return: an OrPermissionClass closure
+    Django REST framework permission which requires that the user be in the IAR_USERS_LOOKUP_GROUP.
     """
-    class OrPermissionClass(permissions.BasePermission):
-
-        def __init__(self):
-            # instantiate each permission class
-            self.permissions = [Permission() for Permission in args]
-            # check that all given permissions inherit from BasePermission
-            for permission in self.permissions:
-                assert issubclass(type(permission), permissions.BasePermission)
-
-        def has_permission(self, request, view):
-            """is true when has_permission() for any of the permissions is true"""
-            for permission in self.permissions:
-                if permission.has_permission(request, view):
-                    return True
+    def has_permission(self, request, view):
+        lookup_response = get_person_for_user(request.user)
+        if lookup_response is None:
+            LOG.error('No cached lookup response for %s', request.user)
             return False
 
-        def has_object_permission(self, request, view, obj):
-            """This is true when BOTH has_permission() AND has_object_permission()
-            for any of the permissions is true.
-            This is important because of the case where X.has_permission() returns false
-            but X.has_object_permission() has been left unimplemented and thus returns true.
-            This in combination with Y.has_permission() = true and
-            Y.has_object_permission() = false would otherwise return true incorrectly.
-            """
-            for permission in self.permissions:
-                if permission.has_permission(request, view) \
-                        and permission.has_object_permission(request, view, obj):
-                    return True
+        if lookup_response.get('groups') is None:
+            LOG.error('No groups in cached lookup response for %s', request.user)
             return False
 
-    return OrPermissionClass
+        for group in lookup_response['groups']:
+            if group['name'] == settings.IAR_USERS_LOOKUP_GROUP:
+                return True
+
+        return False

@@ -2,6 +2,7 @@
 Test custom DRF permissions
 
 """
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
@@ -13,6 +14,115 @@ from assets import permissions
 from assets.models import Asset, UserLookup
 
 from . import clear_cached_person_for_user, set_cached_person_for_user
+
+
+class OrPermissionTests(TestCase):
+
+    def test_view_perms(self):
+        """Test all combinations of two OR'd classes for the view permissions"""
+        cases = (
+            # 0 = A.has_permission(), 1 = B.has_permission(), 2 = expected result
+            (False, False, False),
+            (False, True, True),
+            (True, False, True),
+            (True, True, True),
+        )
+        for case in cases:
+            class A(BasePermission):
+                def has_permission(self, request, view):
+                    return case[0]
+
+            class B(BasePermission):
+                def has_permission(self, request, view):
+                    return case[1]
+            self.assertEqual(permissions.OrPermission(A, B)().has_permission(None, None), case[2])
+
+    def test_object_perms(self):
+        """Test all combinations of two OR'd classes for the object permissions"""
+        cases = (
+            # 0 = A.has_permission(), 1 = A.has_object_permission(),
+            # 2 = B.has_permission(), 3 = B.has_object_permission(),
+            # 4 = expected result
+            (False, False, False, False, False),
+            (False, False, False, True, False),
+            (False, False, True, False, False),
+            (False, False, True, True, True),
+            (False, True, False, False, False),
+            (False, True, False, True, False),
+            (False, True, True, False, False),
+            (False, True, True, True, True),
+            (True, False, False, False, False),
+            (True, False, False, True, False),
+            (True, False, True, False, False),
+            (True, False, True, True, True),
+            (True, True, False, False, True),
+            (True, True, False, True, True),
+            (True, True, True, False, True),
+            (True, True, True, True, True),
+        )
+        for case in cases:
+            class A(BasePermission):
+                def has_permission(self, request, view):
+                    return case[0]
+
+                def has_object_permission(self, request, view, obj):
+                    return case[1]
+
+            class B(BasePermission):
+                def has_permission(self, request, view):
+                    return case[2]
+
+                def has_object_permission(self, request, view, obj):
+                    return case[3]
+
+            perm = permissions.OrPermission(A, B)()
+            self.assertEqual(
+                perm.has_permission(None, None) and perm.has_object_permission(None, None, None),
+                case[4]
+            )
+
+
+class AndPermissionTests(TestCase):
+
+    def test_view_perms(self):
+        """Test all combinations of two AND'd classes for the view permissions"""
+        cases = (
+            # 0 = A.has_permission(), 1 = B.has_permission(), 2 = expected result
+            (False, False, False),
+            (False, True, False),
+            (True, False, False),
+            (True, True, True),
+        )
+        for case in cases:
+            class A(BasePermission):
+                def has_permission(self, request, view):
+                    return case[0]
+
+            class B(BasePermission):
+                def has_permission(self, request, view):
+                    return case[1]
+            self.assertEqual(permissions.AndPermission(A, B)().has_permission(None, None), case[2])
+
+    def test_object_perms(self):
+        """Test all combinations of two AND'd classes for the object permissions"""
+        cases = (
+            # 0 = A.has_permission(), 1 = B.has_permission(), 2 = expected result
+            (False, False, False),
+            (False, True, False),
+            (True, False, False),
+            (True, True, True),
+        )
+        for case in cases:
+            class A(BasePermission):
+                def has_object_permission(self, request, view, obj):
+                    return case[0]
+
+            class B(BasePermission):
+                def has_object_permission(self, request, view, obj):
+                    return case[1]
+            self.assertEqual(
+                permissions.AndPermission(A, B)().has_object_permission(None, None, None), case[2]
+            )
 
 
 class HasScopesPermissionTests(TestCase):
@@ -73,9 +183,6 @@ class UserInInstitutionPermissionTests(TestCase):
 
         # Explicitly set the default user's lookup response
         set_cached_person_for_user(self.user, {'institutions': [{'instid': 'UIS'}]})
-
-    def tearDown(self):
-        clear_cached_person_for_user(self.user)
 
     def test_view_perms_true_for_all_except_POST(self):
         """check that the view permission returns true for all request methods expect POST"""
@@ -162,68 +269,49 @@ class UserInInstitutionPermissionTests(TestCase):
             self.perm.has_object_permission(self.request, None, obj)
         )
 
+    def tearDown(self):
+        clear_cached_person_for_user(self.user)
 
-class OrPermissionTests(TestCase):
 
-    def test_view_perms(self):
-        """Test all combinations of two OR'd classes for the view permissions"""
-        cases = (
-            # 0 = A.has_permission(), 1 = B.has_permission(), 2 = expected result
-            (False, False, False),
-            (False, True, True),
-            (True, False, True),
-            (True, True, True),
-        )
-        for case in cases:
-            class A(BasePermission):
-                def has_permission(self, request, view):
-                    return case[0]
+class UserInIARGroupPermissionTests(TestCase):
 
-            class B(BasePermission):
-                def has_permission(self, request, view):
-                    return case[1]
-            self.assertEqual(permissions.OrPermission(A, B)().has_permission(None, None), case[2])
+    def setUp(self):
+        # Create a mock incoming request and view
+        self.request = Request(HttpRequest())
+        self.perm = permissions.UserInIARGroupPermission()
 
-    def test_object_perms(self):
-        """Test all combinations of two OR'd classes for the object permissions"""
-        cases = (
-            # 0 = A.has_permission(), 1 = A.has_object_permission(),
-            # 2 = B.has_permission(), 3 = B.has_object_permission(),
-            # 4 = expected result
-            (False, False, False, False, False),
-            (False, False, False, True, False),
-            (False, False, True, False, False),
-            (False, False, True, True, True),
-            (False, True, False, False, False),
-            (False, True, False, True, False),
-            (False, True, True, False, False),
-            (False, True, True, True, True),
-            (True, False, False, False, False),
-            (True, False, False, True, False),
-            (True, False, True, False, False),
-            (True, False, True, True, True),
-            (True, True, False, False, True),
-            (True, True, False, True, True),
-            (True, True, True, False, True),
-            (True, True, True, True, True),
-        )
-        for case in cases:
-            class A(BasePermission):
-                def has_permission(self, request, view):
-                    return case[0]
+        # By default, authentication succeeds
+        self.user = get_user_model().objects.create_user(username="test0001")
+        UserLookup.objects.create(user=self.user, scheme='mock', identifier=self.user.username)
+        self.request.user = self.user
 
-                def has_object_permission(self, request, view, obj):
-                    return case[1]
+    def test_no_cached_lookup(self):
+        """check the view permission is false when there is not cached lookup for the user"""
+        self.assertFalse(self.has_permission())
 
-            class B(BasePermission):
-                def has_permission(self, request, view):
-                    return case[2]
+    def test_no_groups_in_cached_lookup(self):
+        """check the view permission is false when the user's cached lookup has no groups"""
+        set_cached_person_for_user(self.user, {})
+        self.assertFalse(self.has_permission())
 
-                def has_object_permission(self, request, view, obj):
-                    return case[3]
+    def test_user_not_in_iar_group(self):
+        """check the view permission is false
+        when the user's isn't associated with the asset's department"""
+        set_cached_person_for_user(self.user, {'groups': [{'name': 'other-group'}]})
+        self.assertFalse(self.has_permission())
 
-            perm = permissions.OrPermission(A, B)()
-            self.assertEqual(
-                perm.has_permission(None, None) and perm.has_object_permission(None, None, None),
-                case[4]
-            )
+    def test_user_in_iar_group(self):
+        """
+        check the view permission is true when the user is associated with the asset's department
+        """
+        set_cached_person_for_user(self.user,
+                                   {'groups': [{'name': settings.IAR_USERS_LOOKUP_GROUP}]})
+        self.assertTrue(self.has_permission())
+
+    def has_permission(self):
+        """convenience method to return the has_permission() method value
+        when evaluated on the test's request"""
+        return self.perm.has_permission(self.request, None)
+
+    def tearDown(self):
+        clear_cached_person_for_user(self.user)
