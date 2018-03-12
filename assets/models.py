@@ -95,6 +95,8 @@ class Asset(ModelChangeMixin, models.Model):
                                     db_index=True)
     DATA_CATEGORY_CHOICES = (
         ('education', 'Education details'),
+        ('alumni', 'Alumni records'),
+        ('contact', 'Basic contact details'),
         ('employment', 'Employment details'),
         ('financial', 'Financial details'),
         ('social', 'Lifestyle and social circumstances'),
