@@ -224,7 +224,7 @@ class AssetAuditTest(TestCase):
 
     def test_audit_compare_override(self):
         """Changes to MultiSelectField fields are audited correctly."""
-        self.asset.data_subject = ['alumni','public']
+        self.asset.data_subject = ['alumni', 'public']
         self.asset.save()
         self.assertEqual(Audit.objects.count(), 1)
         audit = Audit.objects.filter(model_pk=repr(self.asset.pk)).first()
