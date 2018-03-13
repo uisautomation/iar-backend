@@ -49,6 +49,20 @@ class AssetManager(models.Manager):
 
 class Asset(ModelChangeMixin, models.Model):
 
+    def audit_compare(self, field, old, new):
+        """
+        Overridden as the base implementation doesn't correctly detect differences for
+        MultiSelectField fields.
+
+        :param field: The field being compared
+        :param old: the original value
+        :param new: the updated value
+        :return: whether or not a change has been detected
+        """
+        if new is not None and isinstance(field, MultiSelectField):
+            return old != list(new)
+        return super(Asset, self).audit_compare(field, old, new)
+
     """"Model to store Assets for the Information Asset Register"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
 
