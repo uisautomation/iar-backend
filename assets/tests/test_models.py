@@ -1,9 +1,14 @@
 import copy
-from django.test import TestCase
-from assets.models import Asset
 
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from multiselectfield.db.fields import MSFList
+
+from assets.models import Asset, UserLookup
 
 # A complete asset used as a fixture in the following tests.
+from automationcommon.models import set_local_user, clear_local_user, Audit
+
 COMPLETE_ASSET = {
     "name": "asset1",
     "department": "TESTDEPT",
@@ -188,3 +193,54 @@ class AssetTests(TestCase):
         asset_dict['digital_storage_security'] = []
         Asset.objects.create(**asset_dict)
         self.assertFalse(Asset.objects.first().is_complete)
+
+
+class AssetAuditTest(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='test0001')
+        self.user_lookup = UserLookup.objects.create(
+            user=self.user, scheme='mock', identifier=self.user.username)
+        set_local_user(self.user)
+        self.asset = Asset(name='test-asset')
+        self.asset.save()
+
+    def tearDown(self):
+        clear_local_user()
+
+    def test_no_audits_initially(self):
+        """With no changes, there should be no audit."""
+        self.assertEqual(Audit.objects.count(), 0)
+
+    def test_create(self):
+        """Changing an asset makes an audit record."""
+        old_name = self.asset.name
+        self.asset.name = 'new-name'
+        self.asset.save()
+        self.assertEqual(Audit.objects.count(), 1)
+        audit = Audit.objects.filter(model_pk=repr(self.asset.pk)).first()
+        self.assertIsNotNone(audit)
+        self.assertEqual(audit.field, 'name')
+        self.assertEqual(audit.old, old_name)
+        self.assertEqual(audit.new, self.asset.name)
+        self.assertEqual(audit.who.pk, self.user.pk)
+
+    def test_audit_compare_override(self):
+        """Changes to MultiSelectField fields are audited correctly."""
+
+        # fixtures
+        field = self.asset._meta.get_field('data_subject')
+        choices = dict(Asset.DATA_SUBJECT_CHOICES)
+
+        # check blank fields handles correctly
+        self.assertFalse(self.asset.audit_compare(field, None, None))
+        self.assertFalse(self.asset.audit_compare(field, MSFList(choices), set()))
+
+        # check different list orders don't don't trigger an audit record
+        self.assertFalse(self.asset.audit_compare(
+            field, MSFList(choices, ['public', 'alumni']), ['alumni', 'public'],
+        ))
+
+        # check that actual change is detected
+        self.assertTrue(self.asset.audit_compare(
+            field, MSFList(choices, ['public', 'alumni']), {'alumni', 'public', 'supplier'},
+        ))
