@@ -2,6 +2,8 @@ import copy
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from multiselectfield.db.fields import MSFList
+
 from assets.models import Asset, UserLookup
 
 # A complete asset used as a fixture in the following tests.
@@ -199,7 +201,7 @@ class AssetAuditTest(TestCase):
         self.user_lookup = UserLookup.objects.create(
             user=self.user, scheme='mock', identifier=self.user.username)
         set_local_user(self.user)
-        self.asset = Asset(name='test-asset', data_subject=['public'])
+        self.asset = Asset(name='test-asset')
         self.asset.save()
 
     def tearDown(self):
@@ -224,12 +226,21 @@ class AssetAuditTest(TestCase):
 
     def test_audit_compare_override(self):
         """Changes to MultiSelectField fields are audited correctly."""
-        self.asset.data_subject = ['alumni', 'public']
-        self.asset.save()
-        self.assertEqual(Audit.objects.count(), 1)
-        audit = Audit.objects.filter(model_pk=repr(self.asset.pk)).first()
-        self.assertIsNotNone(audit)
-        self.assertEqual(audit.field, 'data_subject')
-        self.assertEqual(audit.old, "['public']")
-        self.assertEqual(audit.new, "['alumni', 'public']")
-        self.assertEqual(audit.who.pk, self.user.pk)
+
+        # fixtures
+        field = self.asset._meta.get_field('data_subject')
+        choices = dict(Asset.DATA_SUBJECT_CHOICES)
+
+        # check blank fields handles correctly
+        self.assertFalse(self.asset.audit_compare(field, None, None))
+        self.assertFalse(self.asset.audit_compare(field, MSFList(choices), set()))
+
+        # check different list orders don't don't trigger an audit record
+        self.assertFalse(self.asset.audit_compare(
+            field, MSFList(choices, ['public', 'alumni']), ['alumni', 'public'],
+        ))
+
+        # check that actual change is detected
+        self.assertTrue(self.asset.audit_compare(
+            field, MSFList(choices, ['public', 'alumni']), {'alumni', 'public', 'supplier'},
+        ))

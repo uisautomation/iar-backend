@@ -59,8 +59,8 @@ class Asset(ModelChangeMixin, models.Model):
         :param new: the updated value
         :return: whether or not a change has been detected
         """
-        if new is not None and isinstance(field, MultiSelectField):
-            return old != list(new)
+        if isinstance(field, MultiSelectField):
+            return len(set(old if old else []) ^ set(new if new else [])) != 0
         return super(Asset, self).audit_compare(field, old, new)
 
     """"Model to store Assets for the Information Asset Register"""
