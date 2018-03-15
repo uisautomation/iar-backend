@@ -76,7 +76,8 @@ class Asset(ModelChangeMixin, models.Model):
 
     PURPOSE_CHOICES = (
         ('teaching', 'Teaching'),
-        ('research', 'Research'),
+        ('research', 'Research (Academic)'),
+        ('research_organisational', 'Research (Organisational)'),
         ('student_administration', 'Student administration'),
         ('staff_administration', 'Staff administration (HR)'),
         ('alumni_supporter_administration', 'Alumni/supporter administration'),
@@ -108,10 +109,10 @@ class Asset(ModelChangeMixin, models.Model):
     data_subject = MultiSelectField(choices=DATA_SUBJECT_CHOICES, null=True, blank=True,
                                     db_index=True)
     DATA_CATEGORY_CHOICES = (
-        ('education', 'Education details'),
+        ('education', 'Education records'),
         ('alumni', 'Alumni records'),
         ('contact', 'Basic contact details'),
-        ('employment', 'Employment details'),
+        ('employment', 'Employment records'),
         ('financial', 'Financial details'),
         ('social', 'Lifestyle and social circumstances'),
         ('visual', 'Visual images'),
