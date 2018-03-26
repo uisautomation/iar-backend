@@ -5,6 +5,7 @@ which is pre-authorised with an OAuth2 client token.
 """
 from django.conf import settings
 from requests_oauthlib import OAuth2Session
+from requests.adapters import HTTPAdapter
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 
 
@@ -30,6 +31,9 @@ class AuthenticatedSession:
         """
         client = BackendApplicationClient(client_id=settings.ASSETS_OAUTH2_CLIENT_ID)
         session = OAuth2Session(client=client)
+        adapter = HTTPAdapter(max_retries=settings.ASSETS_OAUTH2_MAX_RETRIES)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
         session.fetch_token(
             timeout=2, token_url=settings.ASSETS_OAUTH2_TOKEN_URL,
             client_id=settings.ASSETS_OAUTH2_CLIENT_ID,
