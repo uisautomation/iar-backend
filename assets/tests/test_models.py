@@ -10,10 +10,6 @@ from assets.models import Asset, UserLookup
 from automationcommon.models import set_local_user, clear_local_user, Audit
 
 COMPLETE_ASSET = {
-    "name": "asset1",
-    "department": "TESTDEPT",
-    "purpose": "research",
-    "purpose_other": None,
     "owner": "amc203",
     "private": False,
     "personal_data": True,
