@@ -5,3 +5,4 @@
 
 # Django debugging
 django-debug-toolbar
+django-silk

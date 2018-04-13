@@ -38,9 +38,12 @@ DEBUG = True
 
 INSTALLED_APPS = INSTALLED_APPS + [  # noqa: F405
     'debug_toolbar',
+    'silk',
 ]
 
-MIDDLEWARE = MIDDLEWARE + [  # noqa: F405
+MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware',  # silk needs to come very high in the middleware list
+] + MIDDLEWARE + [  # noqa: F405
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
@@ -92,3 +95,6 @@ LOGGING = {
         },
     },
 }
+
+# Keep track of silk's own overhead
+SILKY_META = True

@@ -39,3 +39,7 @@ if HAVE_DDT and settings.DEBUG:
     urlpatterns = [
         path(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
+
+# Selectively enable silk if we're in debug mode and silk is installed
+if 'silk' in settings.INSTALLED_APPS and settings.DEBUG:
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
