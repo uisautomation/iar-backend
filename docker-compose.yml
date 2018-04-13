@@ -45,7 +45,7 @@ services:
     <<: *devserver
     command: ["shell"]
   iar-db:
-    image: postgres
+    image: postgres:9.6
     env_file:
       - compose/base.env
 
@@ -64,7 +64,7 @@ services:
     env_file:
       - compose/lookupproxy.env
   lookupproxy-db:
-    image: postgres
+    image: postgres:9.6
     env_file:
       - compose/lookupproxy.env
 
@@ -89,7 +89,7 @@ services:
     volumes:
       - "./compose/start-hydra.sh:/tmp/start-hydra.sh/:ro"
   hydra-db:
-    image: postgres
+    image: postgres:9.6
     env_file:
       - compose/hydra.env
 
