@@ -18,13 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 import automationcommon.views
 
-# Django debug toolbar is only installed in developer builds
-try:
-    import debug_toolbar.urls
-    HAVE_DDT = True
-except ImportError:
-    HAVE_DDT = False
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('ucamwebauth.urls')),
@@ -33,9 +26,6 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 
-# Selectively enable django debug toolbar URLs. Only if the toolbar is
-# installed *and* DEBUG is True.
-if HAVE_DDT and settings.DEBUG:
-    urlpatterns = [
-        path(r'^__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+# Selectively enable silk if we're in debug mode and silk is installed
+if 'silk' in settings.INSTALLED_APPS and settings.DEBUG:
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
