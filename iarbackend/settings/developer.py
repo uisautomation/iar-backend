@@ -37,15 +37,12 @@ wOq24EIbX5LquL9w+uvnfXw=
 DEBUG = True
 
 INSTALLED_APPS = INSTALLED_APPS + [  # noqa: F405
-    'debug_toolbar',
     'silk',
 ]
 
 MIDDLEWARE = [
     'silk.middleware.SilkyMiddleware',  # silk needs to come very high in the middleware list
-] + MIDDLEWARE + [  # noqa: F405
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-]
+] + MIDDLEWARE  # noqa: F405
 
 STATIC_URL = '/static/'
 

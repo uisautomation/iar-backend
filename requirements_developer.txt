@@ -4,5 +4,4 @@
 # Additional requirements useful for developers of the iarbackend
 
 # Django debugging
-django-debug-toolbar
 django-silk
