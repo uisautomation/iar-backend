@@ -41,14 +41,14 @@ def get_person_for_user(user):
     if user.is_anonymous:
         raise LookupError('User is anonymous')
 
-    # check the user has an associated lookup identity
-    if not UserLookup.objects.filter(user=user).exists():
-        raise LookupError('User has no lookup identity')
-
     # return a cached response if we have it
     cached_resource = cache.get("{user.username}:lookup".format(user=user))
     if cached_resource is not None:
         return cached_resource
+
+    # check the user has an associated lookup identity
+    if not UserLookup.objects.filter(user=user).exists():
+        raise LookupError('User has no lookup identity')
 
     # Extract the scheme and identifier for the token
     scheme = user.lookup.scheme
