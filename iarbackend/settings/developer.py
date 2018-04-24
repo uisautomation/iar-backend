@@ -49,13 +49,13 @@ STATIC_URL = '/static/'
 if os.environ.get('IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT') is not None:
     # These OAuth2 settings are correct only if the development server has been launched via
     # docker-compose.
-    ASSETS_OAUTH2_TOKEN_URL = (
+    OAUTH2_TOKEN_URL = (
         'https://experimental-oauth2.gcloud.automation.uis.cam.ac.uk/oauth2/token')
-    ASSETS_OAUTH2_INTROSPECT_URL = (
+    OAUTH2_INTROSPECT_URL = (
         'https://experimental-oauth2.gcloud.automation.uis.cam.ac.uk/oauth2/introspect')
-    ASSETS_OAUTH2_CLIENT_ID = os.environ.get('IAR_CLIENT_ID')
-    ASSETS_OAUTH2_CLIENT_SECRET = os.environ.get('IAR_CLIENT_SECRET')
-    ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+    OAUTH2_CLIENT_ID = os.environ.get('IAR_CLIENT_ID')
+    OAUTH2_CLIENT_SECRET = os.environ.get('IAR_CLIENT_SECRET')
+    OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
     LOOKUP_ROOT = 'https://lookupproxy.automation.uis.cam.ac.uk/'
 
     # Set the OAuth2 authorisation endpoint
@@ -64,11 +64,11 @@ if os.environ.get('IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT') is not None:
 else:
     # These OAuth2 settings are correct only if the development server has been launched via
     # docker-compose.
-    ASSETS_OAUTH2_TOKEN_URL = 'http://hydra:4444/oauth2/token'
-    ASSETS_OAUTH2_INTROSPECT_URL = 'http://hydra:4444/oauth2/introspect'
-    ASSETS_OAUTH2_CLIENT_ID = 'iarbackend'
-    ASSETS_OAUTH2_CLIENT_SECRET = 'backendsecret'
-    ASSETS_OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
+    OAUTH2_TOKEN_URL = 'http://hydra:4444/oauth2/token'
+    OAUTH2_INTROSPECT_URL = 'http://hydra:4444/oauth2/introspect'
+    OAUTH2_CLIENT_ID = 'iarbackend'
+    OAUTH2_CLIENT_SECRET = 'backendsecret'
+    OAUTH2_INTROSPECT_SCOPES = ['hydra.introspect']
     LOOKUP_ROOT = 'http://lookupproxy:8080/'
 
     # Set the OAuth2 authorisation endpoint

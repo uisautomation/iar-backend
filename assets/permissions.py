@@ -8,7 +8,7 @@ from django.conf import settings
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
 
-from .lookup import get_person_for_user
+from oauthcommon.lookup import get_person_for_user
 
 LOG = logging.getLogger(__name__)
 

@@ -4,10 +4,11 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from multiselectfield.db.fields import MSFList
 
-from assets.models import Asset, UserLookup
+from assets.models import Asset
 
 # A complete asset used as a fixture in the following tests.
 from automationcommon.models import set_local_user, clear_local_user, Audit
+from oauthcommon.models import UserLookup
 
 COMPLETE_ASSET = {
     "name": "asset1",

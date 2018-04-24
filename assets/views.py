@@ -4,7 +4,7 @@ Views for the assets application.
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 
-from assets.lookup import get_person_for_user
+from oauthcommon.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
 
 from django.conf import settings
@@ -18,7 +18,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from .authentication import OAuth2TokenAuthentication
+from oauthcommon.authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import (
     OrPermission, AndPermission,
