@@ -13,8 +13,6 @@ class LogHttp400Errors:
         if response.status_code == 400:
             LOG.warn('400 response from following request:')
             LOG.warn('%r', request)
-            LOG.warn('Request body was:')
-            LOG.warn('%r', request.body)
             LOG.warn('Response was:')
             LOG.warn('%r', response)
             LOG.warn('Response body was:')
