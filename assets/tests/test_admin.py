@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from assets.models import Asset
-from oauthcommon.models import UserLookup
+from automationlookup.models import UserLookup
 
 
 class AdminViewsTests(TestCase):

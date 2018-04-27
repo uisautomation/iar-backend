@@ -12,9 +12,9 @@ from rest_framework.request import Request
 
 from assets import permissions
 from assets.models import Asset
-from oauthcommon.models import UserLookup
+from automationlookup.models import UserLookup
 
-from oauthcommon.tests import clear_cached_person_for_user, set_cached_person_for_user
+from automationlookup.tests import clear_cached_person_for_user, set_cached_person_for_user
 
 
 class OrPermissionTests(TestCase):
