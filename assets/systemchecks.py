@@ -1,8 +1,7 @@
 """
 The :py:mod:`assets` application ships with some custom system checks which ensure that the
-``ASSETS_OAUTH2_...`` settings have non-default values. These system checks are registered by
-the :py:class:`~assets.apps.AssetsConfig` class's
-:py:meth:`~assets.apps.AssetsConfig.ready` method.
+settings have non-default values. These system checks are registered by the
+:py:class:`~assets.apps.AssetsConfig` class's :py:meth:`~assets.apps.AssetsConfig.ready` method.
 
 .. seealso::
 

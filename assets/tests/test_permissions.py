@@ -286,10 +286,6 @@ class UserInIARGroupPermissionTests(TestCase):
         UserLookup.objects.create(user=self.user, scheme='mock', identifier=self.user.username)
         self.request.user = self.user
 
-    # def test_no_cached_lookup(self):
-    #     """check the view permission is false when there is not cached lookup for the user"""
-    #     self.assertFalse(self.has_permission())
-
     def test_no_groups_in_cached_lookup(self):
         """check the view permission is false when the user's cached lookup has no groups"""
         set_cached_person_for_user(self.user, {})
