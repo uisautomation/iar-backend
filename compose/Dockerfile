@@ -18,5 +18,5 @@ ADD ./compose/start-devserver.sh ./compose/wait-for-it.sh /tmp/
 # developer-specific settings.
 #
 # *DO NOT DEPLOY THIS TO PRODUCTION*
-ENV DJANGO_SETTINGS_MODULE iarbackend.settings_developer
+ENV DJANGO_SETTINGS_MODULE iarbackend.settings.developer
 ENTRYPOINT ["/tmp/wait-for-it.sh", "iar-db:5432", "--", "/tmp/start-devserver.sh"]
