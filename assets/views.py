@@ -13,10 +13,8 @@ from django_filters.rest_framework import (
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, generics
-from rest_framework.decorators import api_view, schema, renderer_classes
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import DjangoModelPermissions
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from .models import Asset
@@ -207,8 +205,8 @@ class Stats(generics.RetrieveAPIView):
         total_assets_completed = len(Asset.objects.filter(is_complete=True).values('id'))
         total_assets_personal_data = (Asset.objects.get_base_queryset().filter(personal_data=True)
                                       .count())
-        total_assets_dept = (Asset.objects.all().values('department').annotate(num_assets=Count('id'))
-                             .order_by('department'))
+        total_assets_dept = (Asset.objects.all().values('department')
+                             .annotate(num_assets=Count('id')).order_by('department'))
         total_assets_dept_completed = (Asset.objects.filter(is_complete=True).values('department')
                                        .annotate(num_assets=Count('id')).order_by('department'))
         total_assets_dept_personal_data = (Asset.objects.filter(personal_data=True)
@@ -222,4 +220,3 @@ class Stats(generics.RetrieveAPIView):
             'total_assets_dept_completed': total_assets_dept_completed,
             'total_assets_dept_personal_data': total_assets_dept_personal_data
         }
-
