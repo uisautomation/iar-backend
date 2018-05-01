@@ -1,9 +1,9 @@
 """
 Views for the assets application.
 """
-
-from assets.lookup import get_person_for_user
+from automationlookup.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
+from automationoauthdrf.authentication import OAuth2TokenAuthentication
 from django.conf import settings
 from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
@@ -19,7 +19,6 @@ from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.schemas import ManualSchema
-from .authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import (
     OrPermission, AndPermission,

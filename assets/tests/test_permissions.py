@@ -11,9 +11,10 @@ from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
 from assets import permissions
-from assets.models import Asset, UserLookup
+from assets.models import Asset
+from automationlookup.models import UserLookup
 
-from . import clear_cached_person_for_user, set_cached_person_for_user
+from automationlookup.tests import clear_cached_person_for_user, set_cached_person_for_user
 
 
 class OrPermissionTests(TestCase):
@@ -284,10 +285,6 @@ class UserInIARGroupPermissionTests(TestCase):
         self.user = get_user_model().objects.create_user(username="test0001")
         UserLookup.objects.create(user=self.user, scheme='mock', identifier=self.user.username)
         self.request.user = self.user
-
-    def test_no_cached_lookup(self):
-        """check the view permission is false when there is not cached lookup for the user"""
-        self.assertFalse(self.has_permission())
 
     def test_no_groups_in_cached_lookup(self):
         """check the view permission is false when the user's cached lookup has no groups"""
