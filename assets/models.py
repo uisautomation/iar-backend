@@ -1,5 +1,4 @@
 import uuid
-
 from automationcommon.models import ModelChangeMixin
 from django.conf import settings
 from django.db import models

@@ -1,14 +1,11 @@
 """
 Views for the assets application.
 """
-from rest_framework.permissions import DjangoModelPermissions
-from rest_framework.response import Response
 
 from assets.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
-
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django_filters.rest_framework import (
@@ -16,8 +13,12 @@ from django_filters.rest_framework import (
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
+from rest_framework.decorators import api_view, schema, renderer_classes
 from rest_framework.filters import SearchFilter, OrderingFilter
-
+from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework.response import Response
+from rest_framework.schemas import ManualSchema
 from .authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import (
@@ -189,3 +190,39 @@ class AssetViewSet(viewsets.ModelViewSet):
         if instance.deleted_at is None:
             instance.deleted_at = now()
             instance.save()
+
+
+assets_stats_schema = ManualSchema(
+    fields=[],
+    description="Returns Assets stats: total number of assets, total number of assets completed,"
+                "total number of assets with personal data, and assets per department (total, "
+                "completed, with personal data)"
+)
+
+
+@api_view(['GET'])
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer))
+@schema(assets_stats_schema)
+def stats(request):
+    total_assets = Asset.objects.get_base_queryset().count()
+    # This is highly inefficient but it's trying to bypass a bug that throws an exception
+    # https://code.djangoproject.com/ticket/28762 and
+    # https://github.com/uisautomation/iar-backend/issues/55
+    total_assets_completed = len(Asset.objects.filter(is_complete=True).values('id'))
+    total_assets_personal_data = (Asset.objects.get_base_queryset().filter(personal_data=True)
+                                  .count())
+    total_assets_dept = (Asset.objects.all().values('department').annotate(num_assets=Count('id'))
+                         .order_by('department'))
+    total_assets_dept_completed = (Asset.objects.filter(is_complete=True).values('department')
+                                   .annotate(num_assets=Count('id')).order_by('department'))
+    total_assets_dept_personal_data = (Asset.objects.filter(personal_data=True)
+                                       .values('department').annotate(num_assets=Count('id'))
+                                       .order_by('department'))
+    return Response({
+        'total_assets': total_assets,
+        'total_assets_completed': total_assets_completed,
+        'total_assets_personal_data': total_assets_personal_data,
+        'total_assets_dept': total_assets_dept,
+        'total_assets_dept_completed': total_assets_dept_completed,
+        'total_assets_dept_personal_data': total_assets_dept_personal_data
+    })

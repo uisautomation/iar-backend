@@ -3,7 +3,6 @@ Django REST framework serialisers.
 
 """
 import contextlib
-
 from rest_framework import serializers, fields
 from rest_framework.exceptions import PermissionDenied
 from assets.models import Asset
