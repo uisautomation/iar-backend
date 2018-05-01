@@ -202,7 +202,8 @@ class Stats(generics.RetrieveAPIView):
         # This is highly inefficient but it's trying to bypass a bug that throws an exception
         # https://code.djangoproject.com/ticket/28762 and
         # https://github.com/uisautomation/iar-backend/issues/55
-        total_assets_completed = len(Asset.objects.filter(is_complete=True).values('id'))
+        total_assets_completed = Asset.objects.get_base_queryset().filter(
+            id__in=Asset.objects.filter(is_complete=True).values('id')).count()
         total_assets_personal_data = (Asset.objects.get_base_queryset().filter(personal_data=True)
                                       .count())
         total_assets_dept = (Asset.objects.all().values('department')
