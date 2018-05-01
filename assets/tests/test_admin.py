@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from assets.models import Asset, UserLookup
+from assets.models import Asset
+from automationlookup.models import UserLookup
 
 
 class AdminViewsTests(TestCase):

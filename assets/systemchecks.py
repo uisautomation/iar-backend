@@ -1,8 +1,7 @@
 """
 The :py:mod:`assets` application ships with some custom system checks which ensure that the
-``ASSETS_OAUTH2_...`` settings have non-default values. These system checks are registered by
-the :py:class:`~assets.apps.AssetsConfig` class's
-:py:meth:`~assets.apps.AssetsConfig.ready` method.
+settings have non-default values. These system checks are registered by the
+:py:class:`~assets.apps.AssetsConfig` class's :py:meth:`~assets.apps.AssetsConfig.ready` method.
 
 .. seealso::
 
@@ -25,11 +24,11 @@ def api_credentials_check(app_configs, **kwargs):
 
     # Check that all required settings are specified and non-None
     required_settings = [
-        'ASSETS_OAUTH2_TOKEN_URL',
-        'ASSETS_OAUTH2_INTROSPECT_URL',
-        'ASSETS_OAUTH2_CLIENT_ID',
-        'ASSETS_OAUTH2_CLIENT_SECRET',
-        'ASSETS_OAUTH2_INTROSPECT_SCOPES',
+        'OAUTH2_TOKEN_URL',
+        'OAUTH2_INTROSPECT_URL',
+        'OAUTH2_CLIENT_ID',
+        'OAUTH2_CLIENT_SECRET',
+        'OAUTH2_INTROSPECT_SCOPES',
         'LOOKUP_ROOT',
     ]
     for idx, name in enumerate(required_settings):

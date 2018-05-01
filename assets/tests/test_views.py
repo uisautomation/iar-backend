@@ -8,11 +8,12 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
-from assets.models import Asset, UserLookup
-from assets.tests import set_cached_person_for_user
+from assets.models import Asset
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
+from automationlookup.models import UserLookup
+from automationlookup.tests import set_cached_person_for_user
 
 LOOKUP_RESPONSE = {
     'institutions': [{
@@ -596,7 +597,9 @@ def patch_authenticate(return_value=None):
     mock_authenticate.return_value = return_value
 
     return mock.patch(
-        'assets.authentication.OAuth2TokenAuthentication.authenticate', mock_authenticate)
+        'automationoauthdrf.authentication.OAuth2TokenAuthentication.authenticate',
+        mock_authenticate
+    )
 
 
 class SwaggerAPITest(TestCase):
