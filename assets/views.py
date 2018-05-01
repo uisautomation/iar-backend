@@ -1,30 +1,28 @@
 """
 Views for the assets application.
 """
-from rest_framework.permissions import DjangoModelPermissions
-from rest_framework.response import Response
-
 from automationlookup.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
-
+from automationoauthdrf.authentication import OAuth2TokenAuthentication
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django_filters.rest_framework import (
     DjangoFilterBackend, FilterSet, CharFilter, BooleanFilter, ChoiceFilter
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.response import Response
 
-from automationoauthdrf.authentication import OAuth2TokenAuthentication
 from .models import Asset
 from .permissions import (
     OrPermission, AndPermission,
     HasScopesPermission, UserInInstitutionPermission, UserInIARGroupPermission
 )
-from .serializers import AssetSerializer
+from .serializers import AssetSerializer, AssetStatsSerializer
 
 
 # Scopes required to access asset register.
@@ -189,3 +187,37 @@ class AssetViewSet(viewsets.ModelViewSet):
         if instance.deleted_at is None:
             instance.deleted_at = now()
             instance.save()
+
+
+class Stats(generics.RetrieveAPIView):
+    """
+    Returns Assets stats: total number of assets, total number of assets completed,
+    total number of assets with personal data, and assets per department (total, completed,
+    with personal data)
+    """
+    serializer_class = AssetStatsSerializer
+
+    def get_object(self):
+        total_assets = Asset.objects.get_base_queryset().count()
+        # This is highly inefficient but it's trying to bypass a bug that throws an exception
+        # https://code.djangoproject.com/ticket/28762 and
+        # https://github.com/uisautomation/iar-backend/issues/55
+        total_assets_completed = Asset.objects.get_base_queryset().filter(
+            id__in=Asset.objects.filter(is_complete=True).values('id')).count()
+        total_assets_personal_data = (Asset.objects.get_base_queryset().filter(personal_data=True)
+                                      .count())
+        total_assets_dept = (Asset.objects.all().values('department')
+                             .annotate(num_assets=Count('id')).order_by('department'))
+        total_assets_dept_completed = (Asset.objects.filter(is_complete=True).values('department')
+                                       .annotate(num_assets=Count('id')).order_by('department'))
+        total_assets_dept_personal_data = (Asset.objects.filter(personal_data=True)
+                                           .values('department').annotate(num_assets=Count('id'))
+                                           .order_by('department'))
+        return {
+            'total_assets': total_assets,
+            'total_assets_completed': total_assets_completed,
+            'total_assets_personal_data': total_assets_personal_data,
+            'total_assets_dept': total_assets_dept,
+            'total_assets_dept_completed': total_assets_dept_completed,
+            'total_assets_dept_personal_data': total_assets_dept_personal_data
+        }

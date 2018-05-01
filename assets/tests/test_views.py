@@ -1,4 +1,5 @@
 import copy
+import json
 from unittest import mock
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -413,6 +414,39 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.put(asset_url, COMPLETE_ASSET, format='json').status_code, 403)
         self.assertEqual(client.patch(asset_url, {'name': 'new'}, format='json').status_code, 403)
         self.assertEqual(client.delete(asset_url).status_code, 403)
+
+    def test_asset_stats(self):
+        # test the asset stats end point
+        client = APIClient()
+        asset_dict1 = copy.copy(COMPLETE_ASSET)
+        asset_dict2 = copy.copy(COMPLETE_ASSET)
+        asset_dict3 = copy.copy(COMPLETE_ASSET)
+        # asset2 incomplete and no personal data
+        asset_dict2['personal_data'] = False
+        del asset_dict2['name']
+        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
+        self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
+        cache.set(
+            f"{self.user.username}:lookup",
+            {
+                **LOOKUP_RESPONSE,
+                'institutions': [{**LOOKUP_RESPONSE['institutions'][0], 'instid': 'TESTDEPT2'}]
+            }
+        )
+        asset_dict3['department'] = "TESTDEPT2"
+        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
+        response = client.get('/stats', format='json')
+        self.assertDictEqual(json.loads(response.content), {
+            'total_assets': 3,
+            'total_assets_completed': 2,
+            'total_assets_personal_data': 2,
+            'total_assets_dept': [{'department': 'TESTDEPT', 'num_assets': 2},
+                                  {'department': 'TESTDEPT2', 'num_assets': 1}],
+            'total_assets_dept_completed': [{'department': 'TESTDEPT', 'num_assets': 1},
+                                            {'department': 'TESTDEPT2', 'num_assets': 1}],
+            'total_assets_dept_personal_data': [{'department': 'TESTDEPT', 'num_assets': 1},
+                                                {'department': 'TESTDEPT2', 'num_assets': 1}],
+        })
 
     def refresh_user(self):
         """Refresh user from the database."""
