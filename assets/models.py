@@ -1,4 +1,5 @@
 import uuid
+
 from automationcommon.models import ModelChangeMixin
 from django.db import models
 from django.db.models import Case, When, Q, BooleanField, Value

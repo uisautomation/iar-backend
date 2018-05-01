@@ -3,8 +3,10 @@ Django REST framework serialisers.
 
 """
 import contextlib
+
 from rest_framework import serializers, fields
 from rest_framework.exceptions import PermissionDenied
+
 from assets.models import Asset
 
 
@@ -67,6 +69,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     pass
 
         return allowed_methods
+
+
+class AssetDeptStatsSerializer(serializers.Serializer):
+    """
+    Asset Stats per Department serializer
+    """
+    department = serializers.CharField(help_text=(
+        'Department code the asset belongs to'))
+    num_assets = serializers.IntegerField(help_text=(
+        'Number of assets hold by the department'))
+
+
+class AssetStatsSerializer(serializers.Serializer):
+    """
+    Asset Stats serializer
+    """
+    total_assets = serializers.IntegerField(help_text=(
+        'Total number of assets'))
+    total_assets_completed = serializers.IntegerField(help_text=(
+        'Total number of completed assets'))
+    total_assets_personal_data = serializers.IntegerField(help_text=(
+        'Total number of assets containing personal data'))
+    total_assets_dept = AssetDeptStatsSerializer(many=True, help_text=(
+        'Total number of assets separated by department.'))
+    total_assets_dept_completed = AssetDeptStatsSerializer(many=True, help_text=(
+        'Total number of completed assets separated by department.'))
+    total_assets_dept_personal_data = AssetDeptStatsSerializer(many=True, help_text=(
+        'Total number of assets containing personal data separated by department.'))
 
 
 @contextlib.contextmanager
