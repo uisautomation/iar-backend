@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.timezone import now
 from rest_framework.test import APIClient
 from assets.models import Asset
 from assets.serializers import AssetSerializer
@@ -432,6 +433,7 @@ class APIViewsTests(TestCase):
 
     def test_asset_stats(self):
         """The asset stats endpoint reports correct statistics."""
+        set_local_user(self.user)  # Some user which will be used in the audit log
 
         # A complete asset
         self.create_asset_from_dict(COMPLETE_ASSET)
@@ -445,6 +447,11 @@ class APIViewsTests(TestCase):
         self.create_asset_from_dict(merge_dicts(
             COMPLETE_ASSET, {'department': 'TESTDEPT2'}
         ))
+
+        # A deleted asset
+        asset = self.create_asset_from_dict(COMPLETE_ASSET)
+        asset.deleted_at = now()
+        asset.save()
 
         # Retrieve the stats
         client = APIClient()

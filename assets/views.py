@@ -198,21 +198,31 @@ class Stats(generics.RetrieveAPIView):
     serializer_class = AssetStatsSerializer
 
     def get_object(self):
-        total_assets = Asset.objects.get_base_queryset().count()
+        # These statistics should only be for non-deleted assets.
+        non_deleted_assets = Asset.objects.get_base_queryset().filter(deleted_at__isnull=True)
+        non_deleted_annotated_assets = Asset.objects.filter(deleted_at__isnull=True)
+
+        # The total number of assets
+        total_assets = non_deleted_assets.count()
+
         # This is highly inefficient but it's trying to bypass a bug that throws an exception
         # https://code.djangoproject.com/ticket/28762 and
         # https://github.com/uisautomation/iar-backend/issues/55
-        total_assets_completed = Asset.objects.get_base_queryset().filter(
-            id__in=Asset.objects.filter(is_complete=True).values('id')).count()
-        total_assets_personal_data = (Asset.objects.get_base_queryset().filter(personal_data=True)
-                                      .count())
-        total_assets_dept = (Asset.objects.all().values('department')
+        total_assets_completed = non_deleted_assets.filter(
+            id__in=non_deleted_annotated_assets.filter(is_complete=True).values('id')).count()
+
+        total_assets_personal_data = non_deleted_assets.filter(personal_data=True).count()
+        total_assets_dept = (non_deleted_assets.values('department')
                              .annotate(num_assets=Count('id')).order_by('department'))
-        total_assets_dept_completed = (Asset.objects.filter(is_complete=True).values('department')
-                                       .annotate(num_assets=Count('id')).order_by('department'))
-        total_assets_dept_personal_data = (Asset.objects.filter(personal_data=True)
-                                           .values('department').annotate(num_assets=Count('id'))
-                                           .order_by('department'))
+        total_assets_dept_completed = (
+            non_deleted_annotated_assets.filter(is_complete=True).values('department')
+            .annotate(num_assets=Count('id')).order_by('department')
+        )
+        total_assets_dept_personal_data = (
+            non_deleted_assets.filter(personal_data=True)
+            .values('department').annotate(num_assets=Count('id')).order_by('department')
+        )
+
         return {
             'total_assets': total_assets,
             'total_assets_completed': total_assets_completed,
