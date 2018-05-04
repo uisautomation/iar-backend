@@ -10,6 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from assets.models import Asset
+from assets.serializers import AssetSerializer
 from assets.tests.test_models import COMPLETE_ASSET
 from assets.views import REQUIRED_SCOPES
 from automationcommon.models import set_local_user
@@ -25,6 +26,20 @@ LOOKUP_RESPONSE = {
         'name': settings.IAR_USERS_LOOKUP_GROUP
     }],
 }
+
+
+def merge_dicts(*dicts, deleted_keys=[]):
+    """Return a new dict from a list of dicts by repeated calls to update(). Keys in later
+    dicts will override those in earlier ones. *deleted_keys* is a list of keys which should be
+    deleted from the resulting dict.
+
+    """
+    rv = {}
+    for d in dicts:
+        rv.update(d)
+    for k in deleted_keys:
+        del rv[k]
+    return rv
 
 
 class APIViewsTests(TestCase):
@@ -416,26 +431,25 @@ class APIViewsTests(TestCase):
         self.assertEqual(client.delete(asset_url).status_code, 403)
 
     def test_asset_stats(self):
-        # test the asset stats end point
+        """The asset stats endpoint reports correct statistics."""
+
+        # A complete asset
+        self.create_asset_from_dict(COMPLETE_ASSET)
+
+        # An incomplete asset w/ no personal data
+        self.create_asset_from_dict(merge_dicts(
+            COMPLETE_ASSET, {'personal_data': False}, deleted_keys=['name']
+        ))
+
+        # An asset from TESTDEPT2
+        self.create_asset_from_dict(merge_dicts(
+            COMPLETE_ASSET, {'department': 'TESTDEPT2'}
+        ))
+
+        # Retrieve the stats
         client = APIClient()
-        asset_dict1 = copy.copy(COMPLETE_ASSET)
-        asset_dict2 = copy.copy(COMPLETE_ASSET)
-        asset_dict3 = copy.copy(COMPLETE_ASSET)
-        # asset2 incomplete and no personal data
-        asset_dict2['personal_data'] = False
-        del asset_dict2['name']
-        self.assertEqual(client.post('/assets/', asset_dict1, format='json').status_code, 201)
-        self.assertEqual(client.post('/assets/', asset_dict2, format='json').status_code, 201)
-        cache.set(
-            f"{self.user.username}:lookup",
-            {
-                **LOOKUP_RESPONSE,
-                'institutions': [{**LOOKUP_RESPONSE['institutions'][0], 'instid': 'TESTDEPT2'}]
-            }
-        )
-        asset_dict3['department'] = "TESTDEPT2"
-        self.assertEqual(client.post('/assets/', asset_dict3, format='json').status_code, 201)
         response = client.get('/stats', format='json')
+
         self.assertDictEqual(json.loads(response.content), {
             'total_assets': 3,
             'total_assets_completed': 2,
@@ -508,6 +522,17 @@ class APIViewsTests(TestCase):
         self.assertEqual(result_post.status_code, 201)
         result_get = client.get(result_post.json()['url'], format='json')
         return result_get.json()
+
+    def create_asset_from_dict(self, asset_dict):
+        """Return an assets.models.Asset object from a dictionary of the form accepted by the POST
+        endpoint. The object has also been save()-ed to the database so the pk attribute will be
+        valid. The dictionary is assert-ed to be valid via the is_valid() method on the
+        AssetSerializer.
+
+        """
+        asset_serializer = AssetSerializer(data=asset_dict)
+        self.assertTrue(asset_serializer.is_valid())
+        return Asset.objects.create(**asset_serializer.validated_data)
 
 
 # An alternate asset to COMPLETE_ASSET. It is intended the this asset is never filtered for in
