@@ -81,22 +81,24 @@ class AssetDeptStatsSerializer(serializers.Serializer):
         'Number of assets hold by the department'))
 
 
+class AssetCountsSerializer(serializers.Serializer):
+    """
+    Serialise a :py:class:`assets.views.AssetCounts` object.
+    """
+    total = serializers.IntegerField(help_text='Total number of asset entries')
+    completed = serializers.IntegerField(help_text='Total number of completed asset entries')
+    with_personal_data = serializers.IntegerField(
+        help_text='Total number of asset entries for assets with personal data')
+
+
 class AssetStatsSerializer(serializers.Serializer):
     """
-    Asset Stats serializer
+    Serialise a :py:class:`assets.views.AssetStats` object.
     """
-    total_assets = serializers.IntegerField(help_text=(
-        'Total number of assets'))
-    total_assets_completed = serializers.IntegerField(help_text=(
-        'Total number of completed assets'))
-    total_assets_personal_data = serializers.IntegerField(help_text=(
-        'Total number of assets containing personal data'))
-    total_assets_dept = AssetDeptStatsSerializer(many=True, help_text=(
-        'Total number of assets separated by department.'))
-    total_assets_dept_completed = AssetDeptStatsSerializer(many=True, help_text=(
-        'Total number of completed assets separated by department.'))
-    total_assets_dept_personal_data = AssetDeptStatsSerializer(many=True, help_text=(
-        'Total number of assets containing personal data separated by department.'))
+    all = AssetCountsSerializer(help_text='Statistics for all asset entries')
+    by_institution = serializers.DictField(
+        child=AssetCountsSerializer(),
+        help_text='Statistics for asset entries grouped by Lookup instid')
 
 
 @contextlib.contextmanager

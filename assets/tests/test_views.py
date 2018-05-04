@@ -458,15 +458,11 @@ class APIViewsTests(TestCase):
         response = client.get('/stats', format='json')
 
         self.assertDictEqual(json.loads(response.content), {
-            'total_assets': 3,
-            'total_assets_completed': 2,
-            'total_assets_personal_data': 2,
-            'total_assets_dept': [{'department': 'TESTDEPT', 'num_assets': 2},
-                                  {'department': 'TESTDEPT2', 'num_assets': 1}],
-            'total_assets_dept_completed': [{'department': 'TESTDEPT', 'num_assets': 1},
-                                            {'department': 'TESTDEPT2', 'num_assets': 1}],
-            'total_assets_dept_personal_data': [{'department': 'TESTDEPT', 'num_assets': 1},
-                                                {'department': 'TESTDEPT2', 'num_assets': 1}],
+            'all': {'total': 3, 'completed': 2, 'with_personal_data': 2},
+            'by_institution': {
+                'TESTDEPT': {'total': 2, 'completed': 1, 'with_personal_data': 1},
+                'TESTDEPT2': {'total': 1, 'completed': 1, 'with_personal_data': 1},
+            },
         })
 
     def refresh_user(self):
