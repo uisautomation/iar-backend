@@ -1,0 +1,672 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The assets Application &mdash; iarbackend  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="The iar-backend Project" href="iarbackend.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> iarbackend
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administrator’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iarbackend.html">The iar-backend Project</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The assets Application</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-assets.defaultsettings">Default settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-assets.views">Views and serializers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-assets.permissions">Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-assets.inspectors">Extensions to drf-yasg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-assets.urls">Default URL routing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-assets.apps">Application configuration</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">iarbackend</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>The assets Application</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/assets.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="the-assets-application">
+<h1>The assets Application<a class="headerlink" href="#the-assets-application" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">assets</span></code> application provides a REST-full API for assets.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Add the assets application to your <code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code> configuration as usual.
+Make sure to configure the various <code class="docutils literal notranslate"><span class="pre">ASSETS_OAUTH2_...</span></code> settings.</p>
+</div>
+<div class="section" id="module-assets.defaultsettings">
+<span id="default-settings"></span><h2>Default settings<a class="headerlink" href="#module-assets.defaultsettings" title="Permalink to this headline">¶</a></h2>
+<p>Default settings values for the <code class="xref py py-mod docutils literal notranslate"><span class="pre">assets</span></code> application.</p>
+<dl class="data">
+<dt id="assets.defaultsettings.IAR_USERS_LOOKUP_GROUP">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">IAR_USERS_LOOKUP_GROUP</code><em class="property"> = 'uis-iar-users'</em><a class="headerlink" href="#assets.defaultsettings.IAR_USERS_LOOKUP_GROUP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of lookup group which a user must be a member of to have access to IAR.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.LOOKUP_PEOPLE_CACHE_LIFETIME">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">LOOKUP_PEOPLE_CACHE_LIFETIME</code><em class="property"> = 1800</em><a class="headerlink" href="#assets.defaultsettings.LOOKUP_PEOPLE_CACHE_LIFETIME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Responses to the people endpoint of lookupproxy are cached to increase performance. We assume that
+lookup details on people change rarely. This setting specifies the lifetime of a single cached
+lookup resource for a person in seconds.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.LOOKUP_ROOT">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">LOOKUP_ROOT</code><em class="property"> = None</em><a class="headerlink" href="#assets.defaultsettings.LOOKUP_ROOT" title="Permalink to this definition">¶</a></dt>
+<dd><p>URL of the lookup proxy’s API root.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_CLIENT_ID">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_CLIENT_ID</code><em class="property"> = None</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_CLIENT_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>OAuth2 client id which the API server uses to identify itself to the OAuth2 token introspection
+endpoint.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_CLIENT_SECRET">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_CLIENT_SECRET</code><em class="property"> = None</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_CLIENT_SECRET" title="Permalink to this definition">¶</a></dt>
+<dd><p>OAuth2 client secret which the API server uses to identify itself to the OAuth2 token introspection
+endpoint.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_INTROSPECT_SCOPES">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_INTROSPECT_SCOPES</code><em class="property"> = None</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_INTROSPECT_SCOPES" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of OAuth2 scopes the API server will request for the token it will use with the token
+introspection endpoint.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_INTROSPECT_URL">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_INTROSPECT_URL</code><em class="property"> = None</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_INTROSPECT_URL" title="Permalink to this definition">¶</a></dt>
+<dd><p>URL of the OAuth2 token introspection endpoint. The API server will first identify itself to the
+OAuth2 token endpoint and request an access token for this endpoint.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_LOOKUP_SCOPES">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_LOOKUP_SCOPES</code><em class="property"> = ['lookup:anonymous']</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_LOOKUP_SCOPES" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of OAuth2 scopes the API server will request for the token it will use with lookup.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_MAX_RETRIES">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_MAX_RETRIES</code><em class="property"> = 5</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_MAX_RETRIES" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum number of retries when fetching URLs from the OAuth2 endpoint or OAuth2 authenticated URLs.
+This applies only to failed DNS lookups, socket connections and connection timeouts, never to
+requests where data has made it to the server.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.defaultsettings.OAUTH2_TOKEN_URL">
+<code class="descclassname">assets.defaultsettings.</code><code class="descname">OAUTH2_TOKEN_URL</code><em class="property"> = None</em><a class="headerlink" href="#assets.defaultsettings.OAUTH2_TOKEN_URL" title="Permalink to this definition">¶</a></dt>
+<dd><p>URL of the OAuth2 token endpoint the API server uses to request an authorisation token to perform
+OAuth2 token introspection.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-assets.views">
+<span id="views-and-serializers"></span><h2>Views and serializers<a class="headerlink" href="#module-assets.views" title="Permalink to this headline">¶</a></h2>
+<p>Views for the assets application.</p>
+<dl class="class">
+<dt id="assets.views.AssetCounts">
+<em class="property">class </em><code class="descclassname">assets.views.</code><code class="descname">AssetCounts</code><span class="sig-paren">(</span><em>total</em>, <em>completed</em>, <em>with_personal_data</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetCounts" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="assets.views.AssetCounts.completed">
+<code class="descname">completed</code><a class="headerlink" href="#assets.views.AssetCounts.completed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="assets.views.AssetCounts.total">
+<code class="descname">total</code><a class="headerlink" href="#assets.views.AssetCounts.total" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="assets.views.AssetCounts.with_personal_data">
+<code class="descname">with_personal_data</code><a class="headerlink" href="#assets.views.AssetCounts.with_personal_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.views.AssetFilter">
+<em class="property">class </em><code class="descclassname">assets.views.</code><code class="descname">AssetFilter</code><span class="sig-paren">(</span><em>data=None</em>, <em>queryset=None</em>, <em>prefix=None</em>, <em>strict=None</em>, <em>request=None</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A custom DjangoFilterBackend filter_class defining all filterable fields.
+It seems that simply using filter_fields doesn’t work with the is_complete fields.</p>
+<p>This class was implemented using the example here:
+<a class="reference external" href="https://django-filter.readthedocs.io/en/latest/guide/rest_framework.html#adding-a-filterset-with-filter-class">https://django-filter.readthedocs.io/en/latest/guide/rest_framework.html#adding-a-filterset-with-filter-class</a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.views.AssetStats">
+<em class="property">class </em><code class="descclassname">assets.views.</code><code class="descname">AssetStats</code><span class="sig-paren">(</span><em>queryset</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a queryset of matching non-annotated asset records, calculate some statistics for all
+assets and assets grouped by department.
+We need the non-annotated queryset to work around a bug in Django. See
+<a class="reference external" href="https://code.djangoproject.com/ticket/28762">https://code.djangoproject.com/ticket/28762</a> and
+<a class="reference external" href="https://github.com/uisautomation/iar-backend/issues/55">https://github.com/uisautomation/iar-backend/issues/55</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>queryset</strong> – Non-annotated queryset of <code class="xref py py-class docutils literal notranslate"><span class="pre">assets.models.Asset</span></code> objects</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>all</strong> (<a class="reference internal" href="#assets.views.AssetCounts" title="assets.views.AssetCounts"><em>AssetCounts</em></a>) – Counts for all assets</li>
+<li><strong>by_institution</strong> (<em>dict</em>) – An <a class="reference internal" href="#assets.views.AssetCounts" title="assets.views.AssetCounts"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetCounts</span></code></a> instance for each institution keyed by
+Lookup instid.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.views.AssetViewSet">
+<em class="property">class </em><code class="descclassname">assets.views.</code><code class="descname">AssetViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>API endpoint that allows assets to be created, viewed, searched, filtered, and ordered
+by any field.</p>
+<p>To order by a specific field you need to include in your GET request a parameter called
+ordering with the name of the field you want to order by. You can also order in reverse
+by adding the character “-” at the beginning of the name of the field.</p>
+<p>You can also use the parameter search in your request with the text that you want to search.
+This text will be searched on all fields and will return all possible results</p>
+<p>You can also filter by a specific field. For example if you only want to return those assets
+with name “foobar” you can add to your GET request a parameter called name (name of the field)
+and the value you want to filter by. Example ?name=foobar (this will return all assets
+that have as name “foobar”).</p>
+<dl class="attribute">
+<dt id="assets.views.AssetViewSet.filter_class">
+<code class="descname">filter_class</code><a class="headerlink" href="#assets.views.AssetViewSet.filter_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#assets.views.AssetFilter" title="assets.views.AssetFilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssetFilter</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.views.AssetViewSet.finalize_response">
+<code class="descname">finalize_response</code><span class="sig-paren">(</span><em>request</em>, <em>response</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetViewSet.finalize_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the final response object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.views.AssetViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>get_queryset is patched to only return those assets that are not private or that are
+private but the user doing the request belongs to department that owns the asset.</p>
+<p>Also, if the user is not in <a class="reference internal" href="#assets.defaultsettings.IAR_USERS_LOOKUP_GROUP" title="assets.defaultsettings.IAR_USERS_LOOKUP_GROUP"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IAR_USERS_LOOKUP_GROUP</span></code></a>,
+they can’t see assets.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.views.AssetViewSet.initial">
+<code class="descname">initial</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetViewSet.initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs anything that needs to occur prior to calling the method handler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.views.AssetViewSet.perform_destroy">
+<code class="descname">perform_destroy</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetViewSet.perform_destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>perform_destroy patched to not delete the instance but instead flagged as deleted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="assets.views.AssetViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#assets.views.AssetViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#assets.serializers.AssetSerializer" title="assets.serializers.AssetSerializer"><code class="xref py py-class docutils literal notranslate"><span class="pre">assets.serializers.AssetSerializer</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.views.AssetViewSet.update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.AssetViewSet.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>We force a refresh after an update, so we can get the up to date annotation data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="assets.views.REQUIRED_SCOPES">
+<code class="descclassname">assets.views.</code><code class="descname">REQUIRED_SCOPES</code><em class="property"> = ['assetregister']</em><a class="headerlink" href="#assets.views.REQUIRED_SCOPES" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of OAuth2 scopes required by this client.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="assets.views.SCHEMA_DECORATOR">
+<code class="descclassname">assets.views.</code><code class="descname">SCHEMA_DECORATOR</code><span class="sig-paren">(</span><em>view_method</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.SCHEMA_DECORATOR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to apply to DRF methods which sets the appropriate security requirements.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.views.Stats">
+<em class="property">class </em><code class="descclassname">assets.views.</code><code class="descname">Stats</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.Stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Assets stats: total number of assets, total number of assets completed,
+total number of assets with personal data, and assets per department (total, completed,
+with personal data)</p>
+<dl class="method">
+<dt id="assets.views.Stats.get_object">
+<code class="descname">get_object</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#assets.views.Stats.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object the view is displaying.</p>
+<p>You may want to override this if you need to provide non-standard
+queryset lookups.  Eg if objects are referenced using multiple
+keyword arguments in the url conf.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="assets.views.Stats.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#assets.views.Stats.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#assets.serializers.AssetStatsSerializer" title="assets.serializers.AssetStatsSerializer"><code class="xref py py-class docutils literal notranslate"><span class="pre">assets.serializers.AssetStatsSerializer</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-assets.serializers"></span><p>Django REST framework serialisers.</p>
+<dl class="class">
+<dt id="assets.serializers.AssetCountsSerializer">
+<em class="property">class </em><code class="descclassname">assets.serializers.</code><code class="descname">AssetCountsSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class 'rest_framework.fields.empty'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.serializers.AssetCountsSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialise a <a class="reference internal" href="#assets.views.AssetCounts" title="assets.views.AssetCounts"><code class="xref py py-class docutils literal notranslate"><span class="pre">assets.views.AssetCounts</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.serializers.AssetDeptStatsSerializer">
+<em class="property">class </em><code class="descclassname">assets.serializers.</code><code class="descname">AssetDeptStatsSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class 'rest_framework.fields.empty'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.serializers.AssetDeptStatsSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asset Stats per Department serializer</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.serializers.AssetSerializer">
+<em class="property">class </em><code class="descclassname">assets.serializers.</code><code class="descname">AssetSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class 'rest_framework.fields.empty'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.serializers.AssetSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialise a <code class="xref py py-class docutils literal notranslate"><span class="pre">assets.models.Asset</span></code> object.</p>
+<p>If the request and view fields of the context are set then they are used to query the allowed
+methods on this object. These fields are set by the default get_serializer_context()
+implementation on ViewSets.</p>
+<dl class="method">
+<dt id="assets.serializers.AssetSerializer.get_allowed_methods">
+<code class="descname">get_allowed_methods</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.serializers.AssetSerializer.get_allowed_methods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a list of allowed_methods the current user has on the object being serialised if
+the current request and view are present in the context.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.serializers.AssetStatsSerializer">
+<em class="property">class </em><code class="descclassname">assets.serializers.</code><code class="descname">AssetStatsSerializer</code><span class="sig-paren">(</span><em>instance=None</em>, <em>data=&lt;class 'rest_framework.fields.empty'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.serializers.AssetStatsSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialise a <a class="reference internal" href="#assets.views.AssetStats" title="assets.views.AssetStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">assets.views.AssetStats</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="assets.serializers.setting_request_method">
+<code class="descclassname">assets.serializers.</code><code class="descname">setting_request_method</code><span class="sig-paren">(</span><em>request</em>, <em>method</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.serializers.setting_request_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>A context manager which temporarily changes the method of a request object. As a context
+manager, it guarantees that the method is reset to the original even if an exception is thrown.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-assets.permissions">
+<span id="permissions"></span><h2>Permissions<a class="headerlink" href="#module-assets.permissions" title="Permalink to this headline">¶</a></h2>
+<p>OAuth2 token-based permissions for Django REST Framework views.</p>
+<dl class="function">
+<dt id="assets.permissions.AndPermission">
+<code class="descclassname">assets.permissions.</code><code class="descname">AndPermission</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.permissions.AndPermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function posing as a class. An example of it’s intended usage is</p>
+<dl class="docutils">
+<dt>..code::</dt>
+<dd>permission_classes = (OrPermission(AndPermission(A, B), C), )</dd>
+</dl>
+<p>where A &amp; B are both class that extend from BasePermission. The function returns a class that,
+when instantiated authorise a request when both A and B authorise that request.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> – a tuple of BasePermission subclasses</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an AndPermissionClass closure</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.permissions.HasScopesPermission">
+<em class="property">class </em><code class="descclassname">assets.permissions.</code><code class="descname">HasScopesPermission</code><a class="headerlink" href="#assets.permissions.HasScopesPermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Django REST framework permission which requires that the scopes granted to an OAuth2 token are
+a superset of those required for the view. The requires scopes are specified by the
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">required_scopes</span></code> attribute of the view class.</p>
+<dl class="method">
+<dt id="assets.permissions.HasScopesPermission.has_permission">
+<code class="descname">has_permission</code><span class="sig-paren">(</span><em>request</em>, <em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.permissions.HasScopesPermission.has_permission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <cite>True</cite> if permission is granted, <cite>False</cite> otherwise.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="assets.permissions.OrPermission">
+<code class="descclassname">assets.permissions.</code><code class="descname">OrPermission</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.permissions.OrPermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function posing as a class. An example of it’s intended usage is</p>
+<dl class="docutils">
+<dt>..code::</dt>
+<dd>permission_classes = (OrPermission(A, B), )</dd>
+</dl>
+<p>where A &amp; B are both class that extend from BasePermission. The function returns a class that,
+when instantiated authorise a request when either A or B authorise that request.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> – a tuple of BasePermission subclasses</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an OrPermissionClass closure</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.permissions.UserInIARGroupPermission">
+<em class="property">class </em><code class="descclassname">assets.permissions.</code><code class="descname">UserInIARGroupPermission</code><a class="headerlink" href="#assets.permissions.UserInIARGroupPermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Django REST framework permission which requires that the user be in the IAR_USERS_LOOKUP_GROUP.</p>
+<dl class="method">
+<dt id="assets.permissions.UserInIARGroupPermission.has_permission">
+<code class="descname">has_permission</code><span class="sig-paren">(</span><em>request</em>, <em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.permissions.UserInIARGroupPermission.has_permission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <cite>True</cite> if permission is granted, <cite>False</cite> otherwise.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="assets.permissions.UserInInstitutionPermission">
+<em class="property">class </em><code class="descclassname">assets.permissions.</code><code class="descname">UserInInstitutionPermission</code><a class="headerlink" href="#assets.permissions.UserInInstitutionPermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Django REST framework permission which requires that the user acting on an asset be associated
+with the department that the asset belongs to.</p>
+<dl class="method">
+<dt id="assets.permissions.UserInInstitutionPermission.has_object_permission">
+<code class="descname">has_object_permission</code><span class="sig-paren">(</span><em>request</em>, <em>view</em>, <em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.permissions.UserInInstitutionPermission.has_object_permission" title="Permalink to this definition">¶</a></dt>
+<dd><p>When a new asset is changed/deleted
+check that the user is associated with the department of the existing asset
+AND (in the case of changed) is also associated with the given department.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.permissions.UserInInstitutionPermission.has_permission">
+<code class="descname">has_permission</code><span class="sig-paren">(</span><em>request</em>, <em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.permissions.UserInInstitutionPermission.has_permission" title="Permalink to this definition">¶</a></dt>
+<dd><p>When a new asset is created check that the user is associated with the given department.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-assets.inspectors">
+<span id="extensions-to-drf-yasg"></span><h2>Extensions to drf-yasg<a class="headerlink" href="#module-assets.inspectors" title="Permalink to this headline">¶</a></h2>
+<p>Extensions to <a class="reference external" href="https://drf-yasg.readthedocs.io/">drf-yasg</a>.</p>
+<dl class="class">
+<dt id="assets.inspectors.SwaggerAutoSchema">
+<em class="property">class </em><code class="descclassname">assets.inspectors.</code><code class="descname">SwaggerAutoSchema</code><span class="sig-paren">(</span><em>view</em>, <em>path</em>, <em>method</em>, <em>components</em>, <em>request</em>, <em>overrides</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.inspectors.SwaggerAutoSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>An extension to the <code class="xref py py-class docutils literal notranslate"><span class="pre">drf_yasg.inspectors.SwaggerAutoSchema</span></code> class which knows about a
+few more Operation properties.</p>
+<dl class="attribute">
+<dt id="assets.inspectors.SwaggerAutoSchema.extra_properties">
+<code class="descname">extra_properties</code><em class="property"> = ['security']</em><a class="headerlink" href="#assets.inspectors.SwaggerAutoSchema.extra_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional properties which may be set on operations. Prefix the properties with <code class="docutils literal notranslate"><span class="pre">operation_</span></code>
+and pass them as additional keyword arguments to <code class="xref py py-func docutils literal notranslate"><span class="pre">swagger_auto_schema()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.inspectors.SwaggerAutoSchema.get_operation">
+<code class="descname">get_operation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.inspectors.SwaggerAutoSchema.get_operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an <code class="xref py py-class docutils literal notranslate"><span class="pre">Operation</span></code> for the given API endpoint (path, method).
+This includes query, body parameters and response schemas.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>operation_keys</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – an array of keys describing the hierarchical layout of this view in the API;
+e.g. <code class="docutils literal notranslate"><span class="pre">('snippets',</span> <span class="pre">'list')</span></code>, <code class="docutils literal notranslate"><span class="pre">('snippets',</span> <span class="pre">'retrieve')</span></code>, etc.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">openapi.Operation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-assets.urls">
+<span id="default-url-routing"></span><h2>Default URL routing<a class="headerlink" href="#module-assets.urls" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-assets.apps">
+<span id="application-configuration"></span><h2>Application configuration<a class="headerlink" href="#module-assets.apps" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="assets.apps.AssetsConfig">
+<em class="property">class </em><code class="descclassname">assets.apps.</code><code class="descname">AssetsConfig</code><span class="sig-paren">(</span><em>app_name</em>, <em>app_module</em><span class="sig-paren">)</span><a class="headerlink" href="#assets.apps.AssetsConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configuration for assets application.</p>
+<dl class="attribute">
+<dt id="assets.apps.AssetsConfig.name">
+<code class="descname">name</code><em class="property"> = 'assets'</em><a class="headerlink" href="#assets.apps.AssetsConfig.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The short name for this application.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="assets.apps.AssetsConfig.ready">
+<code class="descname">ready</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#assets.apps.AssetsConfig.ready" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform application initialisation once the Django platform has been initialised.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="assets.apps.AssetsConfig.verbose_name">
+<code class="descname">verbose_name</code><em class="property"> = 'Information Assets Register'</em><a class="headerlink" href="#assets.apps.AssetsConfig.verbose_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The human-readable verbose name for this application.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="iarbackend.html" class="btn btn-neutral" title="The iar-backend Project" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, University of Cambridge Information Services.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

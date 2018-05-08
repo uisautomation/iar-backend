@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Developer’s guide &mdash; iarbackend  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Administrator’s Guide" href="administration.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> iarbackend
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administrator’s Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer’s guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#local-development">Local development</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-the-test-suite">Run the test suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tox-environments">tox environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-the-development-server">Run the development server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-the-documentation">Building the documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-images">Docker images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-a-development-server-within-the-container">Running a development server within the container</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-tests-within-the-container">Running tests within the container</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-an-external-oauth2-endpoint">Using an external OAuth2 endpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cloud-infrastructure">Cloud infrastructure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#source-control">Source control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-tests">Unit tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-coverage">Code-coverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-style">Code-style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Documentation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iarbackend.html">The iar-backend Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assets.html">The assets Application</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">iarbackend</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Developer’s guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/developer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="developer-s-guide">
+<h1>Developer’s guide<a class="headerlink" href="#developer-s-guide" title="Permalink to this headline">¶</a></h1>
+<p>This section contains information on how to perform various task and an overview
+of how our development infrastructure is set up.</p>
+<div class="section" id="local-development">
+<h2>Local development<a class="headerlink" href="#local-development" title="Permalink to this headline">¶</a></h2>
+<p>These tasks are usually performed on an individual developer’s machine.</p>
+<div class="section" id="run-the-test-suite">
+<span id="run-tests"></span><h3>Run the test suite<a class="headerlink" href="#run-the-test-suite" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference external" href="https://tox.readthedocs.io/">tox</a> automation tool is used to run tests
+inside their own virtualenv. This way we can be sure that we know which packages
+are required to run the tests. By default tests are run in a sqlite database
+within a per-environment temporary directory. Other databases can be used by
+setting the <code class="docutils literal notranslate"><span class="pre">DJANGO_DB_...</span></code> environment variables. See <a class="reference internal" href="configuration.html#database-config"><span class="std std-ref">Specifying the database</span></a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tox
+</pre></div>
+</div>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">tox</span></code> will run the test suite using the version of Python used
+when we deploy and will compile a local version of the documentation. The <code class="docutils literal notranslate"><span class="pre">-e</span></code>
+flag may be used to explicitly specify an environment to run. For example, to
+build only the documentation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ tox -e doc
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The Travis CI job runs tox configured with a PostgreSQL database to match
+that deployed in production. To replicate this, either run a PostgreSQL
+instance on the local machine, use the Google Cloud SQL proxy or <a class="reference internal" href="#docker-tox"><span class="std std-ref">run
+the tests via docker-compose</span></a>.</p>
+</div>
+</div>
+<div class="section" id="tox-environments">
+<span id="toxenvs"></span><h3>tox environments<a class="headerlink" href="#tox-environments" title="Permalink to this headline">¶</a></h3>
+<p>The following tox environments are available.</p>
+<dl class="docutils">
+<dt>py36</dt>
+<dd>Run by default. Launch the test suite under Python 3.6. Generate a
+code-coverage report and display a summary coverage report.</dd>
+<dt>doc</dt>
+<dd>Run by default. Build documentation and write it to the <code class="docutils literal notranslate"><span class="pre">build/doc/</span></code>
+directory.</dd>
+<dt>flake8</dt>
+<dd>Run by default. Check for code-style violations using the <a class="reference external" href="http://flake8.pycqa.org/">flake8</a> linter.</dd>
+<dt>collectstatic</dt>
+<dd>Collect static files used by Django to the <code class="docutils literal notranslate"><span class="pre">build/static/</span></code> directory.</dd>
+<dt>makemigrations</dt>
+<dd>Run the “makemigrations” Django command to examine models for changes.
+Useful if you don’t have a virtualenv set up in your local environment.</dd>
+</dl>
+</div>
+<div class="section" id="run-the-development-server">
+<span id="devserver"></span><h3>Run the development server<a class="headerlink" href="#run-the-development-server" title="Permalink to this headline">¶</a></h3>
+<p>Django comes with a development web server which can be run via:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python manage.py runserver <span class="m">0</span>.0.0.0:8080
+</pre></div>
+</div>
+<p>The server should now be browsable at <a class="reference external" href="http://localhost:8080/">http://localhost:8080/</a>.</p>
+</div>
+<div class="section" id="building-the-documentation">
+<h3>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h3>
+<p>This documentation may be built using the “doc” <a class="reference internal" href="#toxenvs"><span class="std std-ref">tox environment</span></a>.</p>
+</div>
+</div>
+<div class="section" id="docker-images">
+<h2>Docker images<a class="headerlink" href="#docker-images" title="Permalink to this headline">¶</a></h2>
+<p>The application is deployed using <a class="reference external" href="https://docker.com/">Docker</a> containers on the Google Container Engine. Usually one
+can just use the <a class="reference internal" href="#devserver"><span class="std std-ref">local development server</span></a> to develop the
+application but occasionally one needs to test the container or make use of the
+same PostgreSQL database which is used in production.</p>
+<div class="section" id="running-a-development-server-within-the-container">
+<span id="docker-devserver"></span><h3>Running a development server within the container<a class="headerlink" href="#running-a-development-server-within-the-container" title="Permalink to this headline">¶</a></h3>
+<p>There is a <a class="reference external" href="https://docs.docker.com/compose/">docker-compose</a> file at the
+top-level of the iarbackend repository which contains configuration allowing the
+application container to be launched in a development mode. In this mode the
+application repository is mounted <strong>read-only</strong> as a volume within the container
+over the top of the application code so changes are reflected within the
+container without need to rebuild it.</p>
+<p>The local repository is mounted read-only because any files written by the
+application will appear in the local repository as a root-owned file which can
+be troublesome.</p>
+<p>Before you bring the development server container up, run an initial database
+migration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker-compose run --rm migrate
+</pre></div>
+</div>
+<p>To run the development server:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker-compose up devserver
+</pre></div>
+</div>
+<p>This makes use of the <a class="reference internal" href="iarbackend.html#module-iarbackend.settings.developer" title="iarbackend.settings.developer"><code class="xref py py-class docutils literal notranslate"><span class="pre">iarbackend.settings.developer</span></code></a> settings,
+launches a PostgreSQL container for the development server and a <a class="reference external" href="https://github.com/mailhog/MailHog">MailHog</a> server to monitor outgoing email. The web
+app is available at <a class="reference external" href="http://localhost:8080/">http://localhost:8080/</a> and the MailHog instance at
+<a class="reference external" href="http://localhost:8025/">http://localhost:8025/</a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> file is modified, you’ll need to re-build the
+container image via <code class="docutils literal notranslate"><span class="pre">docker-compose</span> <span class="pre">build</span></code>.</p>
+</div>
+<p>Occasionally, it is useful to get an interactive Python shell which is set up to
+be able to import the application code and to make database queries, etc. You
+can launch such a shell via:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker-compose run --rm shell
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-tests-within-the-container">
+<span id="docker-tox"></span><h3>Running tests within the container<a class="headerlink" href="#running-tests-within-the-container" title="Permalink to this headline">¶</a></h3>
+<p>The test-suite can be run within the container using a PostgreSQL database in
+the following way:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker-compose run --rm tox
+</pre></div>
+</div>
+<p>Additional options can be passed to tox by appending them to the command. E.g.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ docker-compose run --rm tox -e doc
+</pre></div>
+</div>
+<p>Output generated by tox is persisted into a volume called “tox-data”. See the
+docker-compose configuration for the specifics.</p>
+</div>
+</div>
+<div class="section" id="using-an-external-oauth2-endpoint">
+<h2>Using an external OAuth2 endpoint<a class="headerlink" href="#using-an-external-oauth2-endpoint" title="Permalink to this headline">¶</a></h2>
+<p>If the <code class="docutils literal notranslate"><span class="pre">IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT</span></code> environment variable is set then
+the server brought up with <code class="docutils literal notranslate"><span class="pre">docker-compose</span> <span class="pre">up</span> <span class="pre">devserver</span></code> will use the deployed
+OAuth2 server for authorisation. In this case you must specify the client id and
+client secret for the backend:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">IAR_USE_EXPERIMENTAL_OAUTH2_ENDPOINT</span><span class="o">=</span><span class="m">1</span>
+$ <span class="nb">export</span> <span class="nv">IAR_CLIENT_ID</span><span class="o">=</span><span class="s2">&quot;&lt;iar-backend-client-id&gt;&quot;</span>
+$ <span class="nb">export</span> <span class="nv">IAR_CLIENT_SECRET</span><span class="o">=</span><span class="s2">&quot;&lt;iar-backend-client-secret&gt;&quot;</span>
+$ docker-compose up devserver
+</pre></div>
+</div>
+</div>
+<div class="section" id="cloud-infrastructure">
+<h2>Cloud infrastructure<a class="headerlink" href="#cloud-infrastructure" title="Permalink to this headline">¶</a></h2>
+<p>This section provides a brief outline of cloud infrastructure for development.</p>
+<div class="section" id="source-control">
+<h3>Source control<a class="headerlink" href="#source-control" title="Permalink to this headline">¶</a></h3>
+<p>The source code is hosted on GitHub at <a class="reference external" href="https://github.com/uisautomation/django-boilerplate">https://github.com/uisautomation/django-boilerplate</a>.
+The repository has <code class="docutils literal notranslate"><span class="pre">master</span></code> set up to be writeable only via pull request. It
+is intended that local development happens in personal forks and is merged via
+pull request. The main rationale for this is a) it guards against accidentally
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code>-ing the wrong branch and b) it reduces the number of “dangling”
+branches in the main repository.</p>
+</div>
+<div class="section" id="unit-tests">
+<span id="travisci"></span><h3>Unit tests<a class="headerlink" href="#unit-tests" title="Permalink to this headline">¶</a></h3>
+<p>The project is set up on <a class="reference external" href="https://travis-ci.org/">Travis CI</a> to automatically
+run unit tests and build documentation on each commit to a branch and on each
+pull request.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By logging into Travis CI via GitHub, you can enable Travis CI for your
+personal fork. This is <strong>highly recommended</strong> as you’ll get rapid feedback
+via email if you push a commit to a branch which does not pass the test
+suite.</p>
+</div>
+<p>In order to better match production, Travis CI is set up to run unit tests using
+the PostgreSQL database and <em>not</em> sqlite. If you only run unit tests locally
+with sqlite then it is possible that some tests may fail.</p>
+</div>
+<div class="section" id="code-coverage">
+<h3>Code-coverage<a class="headerlink" href="#code-coverage" title="Permalink to this headline">¶</a></h3>
+<p>Going to <a class="reference external" href="https://codecov.io/">CodeCov</a>, logging in with GitHub and adding the
+<code class="docutils literal notranslate"><span class="pre">django-boilerplate</span></code> repository will start code coverage reporting on pull-requests.</p>
+</div>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>Travis CI has been set up so that when the master branch is built, the
+documentation is deployed to <a class="reference external" href="https://uisautomation.github.io/django-boilerplate">https://uisautomation.github.io/django-boilerplate</a> via
+GitHub pages. The <a class="reference external" href="https://github.com/bb9e/">UIS robot</a> machine account’s
+personal token is set up in Travis via the <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> environment
+variable.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">Travis CI’s <a class="reference external" href="https://docs.travis-ci.com/user/deployment/pages/">documentation</a> on deploying to GitHub
+pages.</p>
+</div>
+</div>
+<div class="section" id="code-style">
+<h3>Code-style<a class="headerlink" href="#code-style" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">tox</span></code> test runner will automatically check the code with <a class="reference external" href="http://flake8.pycqa.org/">flake8</a> to ensure PEP8 compliance. Sometimes, however,
+rules are made to be broken and so you may find yourself needing to use the
+<a class="reference external" href="http://flake8.pycqa.org/en/latest/user/violations.html#in-line-ignoring-errors">noqa in-line comment</a>
+mechanism to silence individual errors.</p>
+<p>To run the flake8 tests manually, specify the tox environment:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span>$ tox -e flake8
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>Documentation<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>This documentation is re-built on each commit to master by Travis and posted to
+GitHub pages at <a class="reference external" href="https://uisautomation.github.io/django-boilerplate/">https://uisautomation.github.io/django-boilerplate/</a>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="administration.html" class="btn btn-neutral" title="Administrator’s Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, University of Cambridge Information Services.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
