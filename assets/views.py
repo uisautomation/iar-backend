@@ -1,6 +1,7 @@
 """
 Views for the assets application.
 """
+from collections import namedtuple
 from automationlookup.lookup import get_person_for_user
 from automationcommon.models import set_local_user, clear_local_user
 from automationoauthdrf.authentication import OAuth2TokenAuthentication
@@ -189,6 +190,71 @@ class AssetViewSet(viewsets.ModelViewSet):
             instance.save()
 
 
+AssetCounts = namedtuple('AssetCounts', 'total completed with_personal_data')
+
+
+class AssetStats:
+    """Given a queryset of matching non-annotated asset records, calculate some statistics for all
+    assets and assets grouped by department.
+    We need the non-annotated queryset to work around a bug in Django. See
+    https://code.djangoproject.com/ticket/28762 and
+    https://github.com/uisautomation/iar-backend/issues/55.
+
+    :param queryset: Non-annotated queryset of :py:class:`assets.models.Asset` objects
+
+    :ivar AssetCounts all: Counts for all assets
+    :ivar dict by_institution: An :py:class:`AssetCounts` instance for each institution keyed by
+        Lookup instid.
+
+    """
+
+    def __init__(self, queryset):
+        # Annotate the input queryset with is_complete.
+        annotated_queryset = Asset.objects.annotate_is_complete(queryset)
+
+        # Compute asset entry counts for all assets.
+        self.all = AssetCounts(
+            total=queryset.count(),
+            # This works around bug that throws an exception
+            completed=queryset.filter(
+                id__in=annotated_queryset.filter(is_complete=True).values('id')).count(),
+            with_personal_data=queryset.filter(personal_data=True).count()
+        )
+
+        # Compute individual counts grouped by department for each class of entry.
+        n_assets_by_dept = {
+            d['department']: d['count'] for d in
+            queryset.values('department').annotate(count=Count('id')).order_by('department')
+        }
+        n_assets_completed_by_dept = {
+            d['department']: d['count'] for d in
+            annotated_queryset.filter(is_complete=True).values('department')
+            .annotate(count=Count('id')).order_by('department')
+        }
+        n_assets_with_personal_data_by_dept = {
+            d['department']: d['count'] for d in
+            queryset.filter(personal_data=True)
+            .values('department').annotate(count=Count('id')).order_by('department')
+        }
+
+        # Create a list of all departments in the database
+        all_depts = [
+            row['department'] for row in
+            queryset.distinct('department').values('department').order_by('department')
+        ]
+
+        # Collect separate counts together grouped by institution. If there is no count for a
+        # particular institution, report "0".
+        self.by_institution = {
+            dept: AssetCounts(
+                total=n_assets_by_dept.get(dept, 0),
+                completed=n_assets_completed_by_dept.get(dept, 0),
+                with_personal_data=n_assets_with_personal_data_by_dept.get(dept, 0),
+            )
+            for dept in all_depts
+        }
+
+
 class Stats(generics.RetrieveAPIView):
     """
     Returns Assets stats: total number of assets, total number of assets completed,
@@ -198,26 +264,5 @@ class Stats(generics.RetrieveAPIView):
     serializer_class = AssetStatsSerializer
 
     def get_object(self):
-        total_assets = Asset.objects.get_base_queryset().count()
-        # This is highly inefficient but it's trying to bypass a bug that throws an exception
-        # https://code.djangoproject.com/ticket/28762 and
-        # https://github.com/uisautomation/iar-backend/issues/55
-        total_assets_completed = Asset.objects.get_base_queryset().filter(
-            id__in=Asset.objects.filter(is_complete=True).values('id')).count()
-        total_assets_personal_data = (Asset.objects.get_base_queryset().filter(personal_data=True)
-                                      .count())
-        total_assets_dept = (Asset.objects.all().values('department')
-                             .annotate(num_assets=Count('id')).order_by('department'))
-        total_assets_dept_completed = (Asset.objects.filter(is_complete=True).values('department')
-                                       .annotate(num_assets=Count('id')).order_by('department'))
-        total_assets_dept_personal_data = (Asset.objects.filter(personal_data=True)
-                                           .values('department').annotate(num_assets=Count('id'))
-                                           .order_by('department'))
-        return {
-            'total_assets': total_assets,
-            'total_assets_completed': total_assets_completed,
-            'total_assets_personal_data': total_assets_personal_data,
-            'total_assets_dept': total_assets_dept,
-            'total_assets_dept_completed': total_assets_dept_completed,
-            'total_assets_dept_personal_data': total_assets_dept_personal_data
-        }
+        # These statistics should only be for non-deleted assets.
+        return AssetStats(Asset.objects.get_base_queryset().filter(deleted_at__isnull=True))
