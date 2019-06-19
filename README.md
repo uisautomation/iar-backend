@@ -1,3 +1,5 @@
+> This repository has moved to https://gitlab.developers.cam.ac.uk/uis/devops/iar/backend
+
 # Information Asset Register Backend
 
 [![Build Status](https://travis-ci.org/uisautomation/iar-backend.svg?branch=master)](https://travis-ci.org/uisautomation/iar-backend)
